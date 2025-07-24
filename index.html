@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Full View PDF Viewer</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .pdf-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .download-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+    }
+
+    .download-btn a {
+      background-color: #0d6efd;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: background-color 0.3s;
+    }
+
+    .download-btn a:hover {
+      background-color: #0b5ed7;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="pdf-container">
+    <div class="download-btn">
+      <a href="document/AnnachiCrackersTariff.pdf" download>⬇ Download PDF</a>
+    </div>
+    <iframe src="document/AnnachiCrackersTariff.pdf"></iframe>
+  </div>
+
+</body>
+</html>
