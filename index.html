@@ -1,44 +1,359 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Annachi Crackers</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF to Image Viewer</title>
+  <!-- PDF.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     body {
+      font-family: sans-serif;
       margin: 0;
-      padding: 0;
+      padding: 10px;
+      background-color: #f5f5f5;
     }
-
+    .container {
+      max-width: 100%;
+      padding: 10px;
+    }
     .pdf-container {
+      position: relative;
+      width: 100%;
+      margin-bottom: 20px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    .pdf-viewer-container {
+      position: relative;
       width: 100%;
       height: 100vh;
+      max-height: 800px;
       overflow: hidden;
     }
-
-    .pdf-container embed {
+    .pdf-viewer {
       width: 100%;
       height: 100%;
       border: none;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pdf-fallback {
+      padding: 20px;
+      text-align: center;
+      background: #f8f8f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    .pdf-fallback a {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      margin: 8px 0;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+      min-width: 200px;
+      text-align: center;
+    }
+    .pdf-fallback a:hover {
+      background: #0056b3;
+    }
+    .pdf-fallback h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    .pdf-fallback p {
+      margin: 5px 0;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    /* PDF.js Viewer Styles */
+    .pdfjs-container {
+      width: 100%;
+      height: 100%;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pdfjs-controls {
+      background: white;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pdfjs-canvas-container {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .pdfjs-canvas {
+      max-width: 100%;
+      height: auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      background: white;
+      border-radius: 4px;
+    }
+
+    .pdfjs-button {
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .pdfjs-button:hover {
+      background: #0056b3;
+    }
+
+    .pdfjs-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .pdfjs-page-info {
+      padding: 8px 12px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .pdfjs-loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+
+    @media (max-width: 768px) {
+      body {
+        padding: 5px;
+      }
+      .pdf-viewer-container {
+        height: 70vh;
+      }
+      .pdf-container {
+        margin-bottom: 10px;
+      }
+      h1, h2 {
+        font-size: 18px;
+        margin: 10px 0;
+      }
+      .pdf-fallback a {
+        padding: 14px 20px;
+        margin: 10px 0;
+        font-size: 16px;
+        min-width: 180px;
+      }
+      .pdf-fallback {
+        padding: 15px;
+      }
+      .container {
+        padding: 5px;
+      }
+    }
+
+    /* Additional mobile optimizations */
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 16px;
+      }
+      h2 {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- <div class="pdf-container">
-    <embed src="document/AnnachiCrackersTariff.pdf" type="application/pdf" />
-  </div> -->
-  <!-- <div class="pdf-container">
-  <object data="document/AnnachiCrackersTariff.pdf" type="application/pdf" width="100%" height="100%">
-    <p>Your browser does not support PDFs. <a href="document/AnnachiCrackersTariff.pdf">Download the PDF</a>.</p>
-  </object>
-  </div> -->
+  <div class="container">
+    <h1>PDF Document</h1>
+    
+    <!-- PDF Viewer Section -->
+    <div class="pdf-container" id="pdf-viewer-section">
+      <h2>PDF Document</h2>
+      <div class="pdf-viewer-container" id="pdf-container">
 
-  <div class="pdf-container">
-    <embed 
-      src="https://raw.githubusercontent.com/AnnachiCrackers/AnnachiCrackers/main/document/AnnachiCrackersTariff.pdf" 
-      type="application/pdf" />
-  </div> 
+        <!-- PDF.js Viewer -->
+        <div class="pdfjs-container" id="pdfjs-viewer" style="display: none;">
+          <div class="pdfjs-controls">
+            <button class="pdfjs-button" id="prev-page">← Previous</button>
+            <span class="pdfjs-page-info">
+              Page <span id="page-num">1</span> of <span id="page-count">-</span>
+            </span>
+            <button class="pdfjs-button" id="next-page">Next →</button>
+          </div>
+          <div class="pdfjs-canvas-container">
+            <canvas id="pdf-canvas" class="pdfjs-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Loading message -->
+        <div class="pdfjs-loading" id="pdf-loading" style="display: none;">
+          <h3>📄 Loading PDF...</h3>
+          <p>Please wait while we prepare your document</p>
+        </div>
+
+        <!-- Fallback options -->
+        <div class="pdf-fallback" id="pdf-fallback" style="display: none;">
+          <div id="fallback-content">
+            <h3>📱 Alternative Options</h3>
+            <p id="fallback-message">Choose your preferred viewing method:</p>
+          </div>
+
+          <a href="document/AnnachiCrackersTariff.pdf" target="_blank" download>
+            📥 Download PDF
+          </a>
+
+          <a href="document/AnnachiCrackersTariff.pdf" target="_blank" id="view-link">
+            🔗 Open in new tab
+          </a>
+
+          <button class="pdfjs-button" id="retry-pdfjs" style="background: #28a745;">
+            🔄 Try PDF Viewer Again
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // PDF.js Configuration
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+      // PDF.js Variables
+      let pdfDoc = null;
+      let pageNum = 1;
+      let pageRendering = false;
+      let pageNumPending = null;
+      let scale = 1.2;
+      const canvas = document.getElementById('pdf-canvas');
+      const ctx = canvas.getContext('2d');
+
+      // PDF.js Functions
+      function renderPage(num) {
+        pageRendering = true;
+
+        pdfDoc.getPage(num).then(function(page) {
+          const viewport = page.getViewport({ scale: scale });
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          const renderContext = {
+            canvasContext: ctx,
+            viewport: viewport
+          };
+
+          const renderTask = page.render(renderContext);
+
+          renderTask.promise.then(function() {
+            pageRendering = false;
+            if (pageNumPending !== null) {
+              renderPage(pageNumPending);
+              pageNumPending = null;
+            }
+          });
+        });
+
+        document.getElementById('page-num').textContent = num;
+      }
+
+      function queueRenderPage(num) {
+        if (pageRendering) {
+          pageNumPending = num;
+        } else {
+          renderPage(num);
+        }
+      }
+
+      function onPrevPage() {
+        if (pageNum <= 1) return;
+        pageNum--;
+        queueRenderPage(pageNum);
+      }
+
+      function onNextPage() {
+        if (pageNum >= pdfDoc.numPages) return;
+        pageNum++;
+        queueRenderPage(pageNum);
+      }
+
+      function updatePageControls() {
+        document.getElementById('prev-page').disabled = (pageNum <= 1);
+        document.getElementById('next-page').disabled = (pageNum >= pdfDoc.numPages);
+      }
+
+      function showFallback(message) {
+        document.getElementById('pdf-loading').style.display = 'none';
+        document.getElementById('pdfjs-viewer').style.display = 'none';
+        document.getElementById('pdf-fallback').style.display = 'block';
+        document.getElementById('fallback-message').textContent = message || 'PDF.js failed to load. Please try alternative options:';
+      }
+
+      function loadPDF() {
+        document.getElementById('pdf-loading').style.display = 'block';
+        document.getElementById('pdfjs-viewer').style.display = 'none';
+        document.getElementById('pdf-fallback').style.display = 'none';
+
+        const url = 'document/AnnachiCrackersTariff.pdf';
+
+        pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+          pdfDoc = pdfDoc_;
+          document.getElementById('page-count').textContent = pdfDoc.numPages;
+
+          // Show PDF.js viewer
+          document.getElementById('pdf-loading').style.display = 'none';
+          document.getElementById('pdfjs-viewer').style.display = 'block';
+
+          // Render the first page
+          renderPage(pageNum);
+          updatePageControls();
+
+        }).catch(function(error) {
+          console.error('Error loading PDF:', error);
+          showFallback('Failed to load PDF with PDF.js viewer.');
+        });
+      }
+
+      // Event Listeners
+      document.addEventListener('DOMContentLoaded', function() {
+        // PDF.js Controls
+        document.getElementById('prev-page').addEventListener('click', function() {
+          onPrevPage();
+          updatePageControls();
+        });
+
+        document.getElementById('next-page').addEventListener('click', function() {
+          onNextPage();
+          updatePageControls();
+        });
+
+        document.getElementById('retry-pdfjs').addEventListener('click', loadPDF);
+
+        // Initialize PDF.js
+        loadPDF();
+      });
+    </script>
 
 </body>
 </html>
