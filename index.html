@@ -1,23 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PDF Viewer</title>
   <style>
-    html, body {
-      margin: 0; padding: 0; height: 100%;
+    /* Hide the PDF by default */
+    #pdf-viewer {
+      display: none;
     }
-    embed, object {
-      width: 100%;
-      height: 100vh;
-      border: none;
+
+    /* Show PDF only on small/mobile screens */
+    @media (max-width: 768px) {
+      #pdf-viewer {
+        display: block;
+      }
+
+      #desktop-message {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
 
-  <embed src="document/AnnachiCrackersTariff.pdf" type="application/pdf" />
+  <!-- PDF Embed -->
+  <div id="pdf-viewer">
+    <embed src="document/AnnachiCrackersTariff.pdf" type="application/pdf" width="100%" height="600px" />
+  </div>
+
+  <!-- Optional message for desktop users -->
+  <div id="desktop-message">
+    <p>This content is only available on mobile devices.</p>
+  </div>
 
 </body>
 </html>
