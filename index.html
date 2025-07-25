@@ -183,6 +183,119 @@
         font-size: 14px;
       }
     }
+
+    /* Large screen optimizations */
+    @media (min-width: 1200px) {
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+ 
+      .pdf-viewer-container {
+        height: 85vh;
+        max-height: 1000px;
+      }
+ 
+      .pdfjs-controls {
+        padding: 15px 20px;
+        gap: 20px;
+      }
+ 
+      .pdfjs-button {
+        padding: 12px 24px;
+        font-size: 16px;
+        min-width: 120px;
+      }
+ 
+      .pdfjs-page-info {
+        padding: 12px 20px;
+        font-size: 16px;
+        font-weight: 500;
+      }
+ 
+      .pdfjs-canvas-container {
+        padding: 30px;
+      }
+ 
+      .pdf-fallback {
+        padding: 40px;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+ 
+      .pdf-fallback a {
+        padding: 16px 32px;
+        font-size: 18px;
+        min-width: 220px;
+        margin: 15px 0;
+      }
+ 
+      h1 {
+        font-size: 32px;
+        margin: 20px 0;
+      }
+ 
+      h2 {
+        font-size: 24px;
+        margin: 15px 0;
+      }
+    }
+ 
+    /* Extra large screens (4K, ultrawide monitors) */
+    @media (min-width: 1600px) {
+      .container {
+        max-width: 1800px;
+        padding: 30px;
+      }
+ 
+      .pdf-viewer-container {
+        height: 90vh;
+        max-height: 1200px;
+      }
+ 
+      .pdfjs-controls {
+        padding: 20px 30px;
+        gap: 30px;
+      }
+ 
+      .pdfjs-button {
+        padding: 14px 28px;
+        font-size: 18px;
+        min-width: 140px;
+      }
+ 
+      .pdfjs-page-info {
+        padding: 14px 24px;
+        font-size: 18px;
+      }
+ 
+      .pdfjs-canvas-container {
+        padding: 40px;
+      }
+ 
+      .pdf-fallback {
+        padding: 50px;
+        max-width: 700px;
+      }
+ 
+      .pdf-fallback a {
+        padding: 18px 36px;
+        font-size: 20px;
+        min-width: 250px;
+        margin: 20px 0;
+      }
+ 
+      h1 {
+        font-size: 36px;
+        margin: 25px 0;
+      }
+ 
+      h2 {
+        font-size: 28px;
+        margin: 20px 0;
+      }
+    }
   </style>
 </head>
 <body>
