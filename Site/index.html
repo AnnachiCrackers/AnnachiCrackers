@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎆 Annachi Crackers</title>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Tamil:ital@0;1&family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold:#F5A623;--deep-red:#C0392B;--orange:#E67E22;
+    --pink:#E91E8C;--purple:#9B59B6;--teal:#1ABC9C;
+    --dark-bg:#080810;--card-bg:#10101C;--card-border:#252538;
+    --text-primary:#F5F0E8;--text-muted:#9A8FA0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--dark-bg);color:var(--text-primary);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+  /* FIREWORKS CANVAS */
+  #fwCanvas{position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%}
+
+  @keyframes twinkle{0%{opacity:.6}50%{opacity:1}100%{opacity:.7}}
+  @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+  @keyframes bounce1{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.15)}}
+  @keyframes bounce2{0%,100%{transform:translateY(0) rotate(-5deg) scale(1)}50%{transform:translateY(-10px) rotate(5deg) scale(1.2)}}
+  @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+  @keyframes cartBounce{0%,100%{transform:scale(1)}30%{transform:scale(1.3)}60%{transform:scale(.9)}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* OFFER BANNER */
+  .offer-banner{position:relative;z-index:20;background:linear-gradient(90deg,#C0392B,#E91E8C,#F5A623,#E91E8C,#C0392B);background-size:300% 100%;animation:gradientShift 4s ease infinite;padding:.45rem 0;overflow:hidden;display:none}
+  .offer-banner.show{display:block}
+  .marquee-wrap{overflow:hidden;white-space:nowrap}
+  .offer-marquee{display:inline-block;animation:marquee 20s linear infinite;font-size:.8rem;font-weight:600;color:#fff}
+  .offer-marquee span{margin:0 2.5rem}
+
+  /* HEADER */
+  header{position:relative;z-index:10;text-align:center;padding:3rem 1rem 2rem;background:linear-gradient(180deg,#1A0510 0%,#0D0A18 60%,transparent 100%);border-bottom:1px solid #FF6B3530}
+  .header-sparkles{display:flex;justify-content:center;gap:1rem;font-size:1.8rem;margin-bottom:.75rem}
+  .hs1{animation:bounce1 2s infinite}.hs2{animation:bounce2 2.2s infinite;font-size:2.5rem}.hs3{animation:bounce1 1.8s infinite}
+  header h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,10vw,6rem);letter-spacing:5px;background:linear-gradient(135deg,#FFD700,#FF6B35,#E91E8C,#9B59B6);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradientShift 4s ease infinite;line-height:1;filter:drop-shadow(0 0 20px #F5A62330)}
+  header p{font-family:'Tiro Tamil',serif;font-size:1.1rem;margin-top:.6rem;font-weight:600;background:linear-gradient(90deg,#F5A623,#E91E8C);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .header-divider{width:120px;height:2px;background:linear-gradient(90deg,transparent,#F5A623,#E91E8C,transparent);margin:1rem auto 0;border-radius:2px}
+
+  .loading-bar{position:relative;z-index:10;text-align:center;padding:3rem 1rem;display:none}
+  .loading-bar.show{display:block}
+  .spinner{width:40px;height:40px;border:3px solid #2A2A3A;border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem}
+  .loading-bar p{color:var(--text-muted);font-size:.9rem}
+
+  /* SEARCH */
+  .search-bar{position:relative;z-index:10;padding:1.5rem 1rem;max-width:620px;margin:0 auto;display:flex;gap:.75rem;flex-wrap:wrap}
+  .search-wrap{position:relative;flex:1;min-width:200px}
+  .search-icon{position:absolute;left:.8rem;top:50%;transform:translateY(-50%);font-size:.9rem;pointer-events:none}
+  .search-bar input{width:100%;background:#1A1A2E;border:1px solid #3D2B6B;border-radius:10px;padding:.7rem 1rem .7rem 2.5rem;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:all .3s}
+  .search-bar input:focus{border-color:#E91E8C;box-shadow:0 0 0 3px #E91E8C18}
+  .search-bar input::placeholder{color:var(--text-muted)}
+  .filter-select{background:#1A1A2E;border:1px solid #3D2B6B;border-radius:10px;padding:.7rem 1rem;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;cursor:pointer}
+
+  /* TABS */
+  .category-tabs{position:relative;z-index:10;display:flex;gap:.5rem;flex-wrap:wrap;padding:0 1rem 1.25rem;max-width:1200px;margin:0 auto}
+  .tab-btn{padding:.45rem 1.2rem;border-radius:20px;border:1px solid #2A2A3A;background:#10101C;color:var(--text-muted);font-size:.85rem;cursor:pointer;transition:all .25s;font-family:'DM Sans',sans-serif}
+  .tab-btn:hover{border-color:#E91E8C;color:#E91E8C;background:#E91E8C10}
+  .tab-btn.active{background:linear-gradient(135deg,#F5A623,#E91E8C);border-color:transparent;color:#fff;font-weight:600;box-shadow:0 4px 15px #E91E8C35}
+
+  /* GRID */
+  .products-grid{position:relative;z-index:10;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.25rem;padding:1rem;max-width:1200px;margin:0 auto}
+  .product-card:nth-child(4n+1){--c1:#1A0F20;--c2:#220A1A;--glow:#E91E8C30;--border-h:#E91E8C}
+  .product-card:nth-child(4n+2){--c1:#0F1A20;--c2:#0A1822;--glow:#1ABC9C30;--border-h:#1ABC9C}
+  .product-card:nth-child(4n+3){--c1:#1A1508;--c2:#221A05;--glow:#F5A62330;--border-h:#F5A623}
+  .product-card:nth-child(4n+0){--c1:#150F20;--c2:#1A0A28;--glow:#9B59B630;--border-h:#9B59B6}
+  .product-card{background:linear-gradient(145deg,var(--c1),var(--c2));border:1px solid var(--card-border);border-radius:16px;overflow:hidden;transition:all .35s cubic-bezier(.175,.885,.32,1.275);position:relative}
+  .product-card::before{content:'';position:absolute;inset:0;border-radius:16px;opacity:0;background:radial-gradient(ellipse at 50% 0%,var(--glow,#F5A62320),transparent 70%);transition:opacity .3s;pointer-events:none;z-index:0}
+  .product-card:hover::before{opacity:1}
+  .product-card:hover{border-color:var(--border-h,var(--gold));transform:translateY(-6px) scale(1.01);box-shadow:0 16px 40px var(--glow,#F5A62330)}
+  .product-card>*{position:relative;z-index:1}
+  .card-badge{position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#C0392B,#E74C3C);color:#fff;font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:10px;text-transform:uppercase;letter-spacing:.8px;z-index:5;box-shadow:0 2px 8px #C0392B50}
+  .card-badge.popular{background:linear-gradient(135deg,#F5A623,#E67E22);color:#0A0A0F;box-shadow:0 2px 8px #F5A62350}
+  .card-badge.new{background:linear-gradient(135deg,#1ABC9C,#27AE60);box-shadow:0 2px 8px #1ABC9C50}
+  .card-img{width:100%;height:165px;display:flex;align-items:center;justify-content:center;font-size:4.5rem;background:linear-gradient(135deg,#0D0D1A,#1A0D1A);border-bottom:1px solid #ffffff10;overflow:hidden}
+  .card-body{padding:1rem}
+  .card-category{font-size:.7rem;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:.4rem;background:linear-gradient(90deg,#F5A623,#E91E8C);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .card-name{font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:.3rem}
+  .card-name-ta{font-family:'Tiro Tamil',serif;font-size:.88rem;color:var(--text-muted);margin-bottom:.75rem}
+  .card-desc{font-size:.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:.75rem}
+  .card-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding-top:.6rem;border-top:1px solid #ffffff08}
+  .card-price{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;background:linear-gradient(135deg,#FFD700,#F5A623);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .card-price small{font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);font-weight:400;-webkit-text-fill-color:var(--text-muted)}
+  .card-stock{font-size:.73rem;padding:3px 10px;border-radius:10px;font-weight:600}
+  .in-stock{background:#1ABC9C20;color:#1ABC9C;border:1px solid #1ABC9C40}
+  .out-stock{background:#E74C3C20;color:#E74C3C;border:1px solid #E74C3C40}
+  .limited{background:#F5A62320;color:#F5A623;border:1px solid #F5A62340}
+  .add-cart-btn{width:100%;margin-top:.65rem;padding:.55rem;background:linear-gradient(135deg,#F5A623,#E91E8C);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+  .add-cart-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+  .add-cart-btn:disabled{background:#2A2A3A;color:var(--text-muted);cursor:not-allowed;transform:none}
+
+  /* CART FAB */
+  .cart-fab{position:fixed;bottom:5.5rem;right:1.25rem;z-index:200;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#F5A623,#E91E8C);border:none;cursor:pointer;font-size:1.4rem;box-shadow:0 6px 24px #E91E8C50;transition:all .3s;display:flex;align-items:center;justify-content:center}
+  .cart-fab:hover{transform:scale(1.1)}
+  .cart-fab.bump{animation:cartBounce .4s ease}
+  .cart-count{position:absolute;top:-4px;right:-4px;background:#E74C3C;color:#fff;font-size:.65rem;font-weight:700;width:20px;height:20px;border-radius:50%;display:none;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;border:2px solid var(--dark-bg)}
+  .cart-count.show{display:flex}
+
+  /* WA FAB */
+  .wa-fab{position:fixed;bottom:1.25rem;right:1.25rem;z-index:200;width:58px;height:58px;border-radius:50%;background:#25D366;border:none;cursor:pointer;font-size:1.5rem;box-shadow:0 6px 24px #25D36660;transition:all .3s;display:none;align-items:center;justify-content:center;text-decoration:none}
+  .wa-fab:hover{transform:scale(1.1)}
+
+  /* CART DRAWER */
+  .cart-overlay{position:fixed;inset:0;background:#00000085;z-index:300;display:none;animation:fadeIn .2s}
+  .cart-overlay.show{display:block}
+  .cart-drawer{position:fixed;right:0;top:0;bottom:0;width:min(420px,100vw);background:#0D0D1A;border-left:1px solid #2A2A3A;z-index:301;display:none;flex-direction:column;animation:slideIn .3s ease}
+  .cart-drawer.open{display:flex}
+  .cart-header{padding:1.25rem;border-bottom:1px solid #2A2A3A;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .cart-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;background:linear-gradient(135deg,#F5A623,#E91E8C);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .cart-close{background:none;border:none;color:var(--text-muted);font-size:1.4rem;cursor:pointer;padding:.2rem .5rem;border-radius:6px;transition:all .2s}
+  .cart-close:hover{background:#2A2A3A;color:var(--text-primary)}
+  .cart-items{flex:1;overflow-y:auto;padding:1rem}
+  .cart-empty{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
+  .ce-emoji{font-size:3rem;display:block;margin-bottom:.75rem}
+  .cart-item{display:flex;gap:.75rem;padding:.75rem;background:#13131A;border:1px solid #2A2A3A;border-radius:10px;margin-bottom:.6rem;align-items:center}
+  .ci-emoji{font-size:1.8rem;flex-shrink:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#1A1A2A}
+  .ci-img{width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0}
+  .ci-info{flex:1;min-width:0}
+  .ci-name{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ci-price{font-size:.78rem;color:var(--gold);margin-top:2px}
+  .ci-qty{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+  .qty-btn{width:26px;height:26px;border-radius:6px;border:1px solid #3A3A4A;background:#1A1A2A;color:var(--text-primary);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+  .qty-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .qty-num{font-size:.9rem;font-weight:600;min-width:20px;text-align:center}
+  .ci-remove{background:none;border:none;color:#E74C3C50;cursor:pointer;font-size:1rem;padding:.2rem;border-radius:4px;transition:all .15s;flex-shrink:0}
+  .ci-remove:hover{color:#E74C3C;background:#E74C3C15}
+  .cart-footer{padding:1rem 1.25rem;border-top:1px solid #2A2A3A;flex-shrink:0}
+  .cart-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+  .ct-label{font-size:.85rem;color:var(--text-muted)}
+  .ct-amount{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;background:linear-gradient(135deg,#FFD700,#F5A623);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .order-wa-btn{width:100%;padding:.85rem;border-radius:10px;border:none;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+  .order-wa-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+  .clear-cart-btn{width:100%;margin-top:.5rem;padding:.55rem;border-radius:8px;border:1px solid #E74C3C30;background:transparent;color:#E74C3C80;font-size:.82rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+  .clear-cart-btn:hover{border-color:#E74C3C;color:#E74C3C}
+
+  /* EMPTY / ERROR */
+  .empty-state{grid-column:1/-1;text-align:center;padding:5rem 1rem;color:var(--text-muted)}
+  .empty-state .big-emoji{font-size:4rem;display:block;margin-bottom:1rem;animation:bounce2 2s infinite}
+  .empty-state h3{font-size:1.2rem;margin-bottom:.5rem;color:var(--text-primary)}
+  .empty-state small{font-size:.78rem;color:#E74C3C}
+
+  /* FOOTER */
+  footer{position:relative;z-index:10;text-align:center;padding:2rem 1rem 7rem;font-size:.85rem;border-top:1px solid #ffffff08;margin-top:2rem;font-family:'Tiro Tamil',serif}
+  .footer-text{background:linear-gradient(90deg,#E91E8C,#F5A623,#1ABC9C,#9B59B6);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradientShift 5s ease infinite;font-weight:600}
+  .footer-address{font-size:.8rem;color:var(--text-muted);margin-top:.6rem;line-height:1.7}
+  .footer-address a{color:var(--teal);text-decoration:none}
+  .footer-address a:hover{text-decoration:underline}
+
+  @media(max-width:480px){
+    .products-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem}
+    .card-img{height:120px;font-size:3rem}
+    .cart-drawer{width:100vw}
+  }
+</style>
+</head>
+<body>
+
+<!-- FIREWORKS CANVAS -->
+<canvas id="fireworksCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;"></canvas>
+
+<!-- FIREWORKS CANVAS -->
+<canvas id="fwCanvas"></canvas>
+
+<!-- OFFER BANNER -->
+<div class="offer-banner" id="offerBanner">
+  <div class="marquee-wrap">
+    <div class="offer-marquee" id="offerMarquee">
+      <span>🎆 தீபாவளி சிறப்பு தள்ளுபடி!</span>
+      <span>🧨 Annachi Crackers-ல் மலிவான விலையில் crackers!</span>
+      <span>🪔 Happy Diwali!</span>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="header-sparkles">
+    <span class="hs1">🎇</span><span class="hs2">🎆</span><span class="hs3">🧨</span>
+  </div>
+  <h1>ANNACHI CRACKERS</h1>
+  <p id="siteTagline">அண்ணாச்சி கிராக்கர்ஸ்</p>
+  <div class="header-divider"></div>
+</header>
+
+<!-- LOADING -->
+<div class="loading-bar show" id="loadingBar">
+  <div class="spinner"></div>
+  <p>Products load ஆகுது... ⏳</p>
+</div>
+
+<div class="search-bar" id="searchSection" style="display:none">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="தேடுங்கள்... (Search crackers)">
+  </div>
+  <select class="filter-select" id="sortSelect">
+    <option value="">Sort by</option>
+    <option value="price-low">Price: Low → High</option>
+    <option value="price-high">Price: High → Low</option>
+    <option value="name">Name A-Z</option>
+  </select>
+</div>
+
+<div class="category-tabs" id="categoryTabs"></div>
+<div class="products-grid" id="productsGrid"></div>
+
+<footer>
+  <div class="footer-text" id="siteFooter">© 2024 Annachi Crackers • அண்ணாச்சி கிராக்கர்ஸ் 🪔</div>
+  <div class="footer-address" id="siteAddress"></div>
+</footer>
+
+<!-- FABs -->
+<button class="cart-fab" id="cartFab" onclick="toggleCart()">
+  🛒<span class="cart-count" id="cartCount">0</span>
+</button>
+<a class="wa-fab" id="waFab" href="#" target="_blank">💬</a>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <span class="cart-title">🛒 உங்கள் Cart</span>
+    <button class="cart-close" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty"><span class="ce-emoji">🧺</span>Cart காலியா இருக்கு!<br><small>Products சேர்த்து order பண்ணுங்கள்</small></div>
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none">
+    <div class="cart-total">
+      <span class="ct-label">மொத்தம் (Total)</span>
+      <span class="ct-amount" id="cartTotal">₹0</span>
+    </div>
+    <button class="order-wa-btn" onclick="orderOnWhatsApp()">💬 WhatsApp-ல் Order பண்ணுங்கள்</button>
+    <button class="clear-cart-btn" onclick="clearCart()">🗑️ Cart காலி பண்ணு</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// 🎆 FIREWORKS ENGINE
+// ══════════════════════════════════════════
+(function(){
+  const canvas = document.getElementById('fireworksCanvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  function resize(){
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Color palettes — festival colors
+  const PALETTES = [
+    ['#FFD700','#FFA500','#FF6B35'],   // gold-orange
+    ['#E91E8C','#FF4081','#F06292'],   // pink-magenta
+    ['#1ABC9C','#00E5FF','#80DEEA'],   // teal-cyan
+    ['#9B59B6','#CE93D8','#E040FB'],   // purple
+    ['#F5A623','#FFD54F','#FFCA28'],   // amber
+    ['#FF5252','#FF1744','#FF8A80'],   // red
+    ['#69F0AE','#00E676','#B9F6CA'],   // green
+    ['#40C4FF','#0091EA','#82B1FF'],   // blue
+  ];
+
+  // ── Particle ──
+  class Particle {
+    constructor(x, y, color, angle, speed, type){
+      this.x  = x; this.y = y;
+      this.color = color;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.alpha   = 1;
+      this.decay   = Math.random() * 0.015 + 0.012;
+      this.radius  = Math.random() * 2.5 + 1.2;
+      this.gravity = 0.06;
+      this.type    = type || 'spark'; // spark | trail | star | ring
+      this.flicker = Math.random() > 0.5;
+      this.tail    = [];
+      this.maxTail = type === 'trail' ? 8 : 3;
+    }
+    update(){
+      this.tail.unshift({x:this.x, y:this.y, a:this.alpha});
+      if(this.tail.length > this.maxTail) this.tail.pop();
+      this.x  += this.vx;
+      this.y  += this.vy;
+      this.vy += this.gravity;
+      this.vx *= 0.98;
+      this.alpha -= this.decay;
+      if(this.flicker && Math.random() > 0.7) this.alpha -= 0.03;
+    }
+    draw(){
+      // draw tail
+      this.tail.forEach((pt, i) => {
+        const ta = pt.a * (1 - i / this.maxTail) * 0.4;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, this.radius * (1 - i / this.maxTail) * 0.6, 0, Math.PI*2);
+        ctx.fillStyle = this.color.replace(')',`,${ta})`).replace('rgb','rgba').replace('#', 'rgba(') ;
+        // safe color render
+        ctx.globalAlpha = ta;
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      });
+      ctx.globalAlpha = this.alpha;
+      ctx.beginPath();
+      if(this.type === 'star'){
+        drawStar(ctx, this.x, this.y, 5, this.radius*1.5, this.radius*0.7);
+      } else {
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+      }
+      ctx.fillStyle = this.color;
+      ctx.shadowBlur  = 8;
+      ctx.shadowColor = this.color;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur  = 0;
+    }
+    isDead(){ return this.alpha <= 0; }
+  }
+
+  function drawStar(ctx, cx, cy, spikes, outerR, innerR){
+    let rot = (Math.PI / 2) * 3, step = Math.PI / spikes;
+    ctx.moveTo(cx, cy - outerR);
+    for(let i=0; i<spikes; i++){
+      ctx.lineTo(cx + Math.cos(rot)*outerR, cy + Math.sin(rot)*outerR); rot += step;
+      ctx.lineTo(cx + Math.cos(rot)*innerR, cy + Math.sin(rot)*innerR); rot += step;
+    }
+    ctx.closePath();
+  }
+
+  // ── Rocket ──
+  class Rocket {
+    constructor(){
+      this.x     = Math.random() * W * 0.8 + W * 0.1;
+      this.y     = H + 10;
+      this.tx    = Math.random() * W * 0.7 + W * 0.15;
+      this.ty    = Math.random() * H * 0.45 + H * 0.05;
+      const ang  = Math.atan2(this.ty - this.y, this.tx - this.x);
+      const spd  = Math.random() * 4 + 6;
+      this.vx    = Math.cos(ang) * spd;
+      this.vy    = Math.sin(ang) * spd;
+      this.alive = true;
+      this.trail = [];
+      this.palette = PALETTES[Math.floor(Math.random()*PALETTES.length)];
+    }
+    update(){
+      this.trail.unshift({x:this.x, y:this.y});
+      if(this.trail.length > 12) this.trail.pop();
+      this.x += this.vx; this.y += this.vy;
+      this.vy += 0.08;
+      if(this.vy >= 0 || Math.hypot(this.x-this.tx, this.y-this.ty) < 15){
+        this.alive = false;
+        explode(this.x, this.y, this.palette);
+      }
+    }
+    draw(){
+      this.trail.forEach((pt, i) => {
+        const a = (1 - i/this.trail.length) * 0.7;
+        ctx.globalAlpha = a;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 2.5 * (1 - i/this.trail.length), 0, Math.PI*2);
+        ctx.fillStyle = this.palette[0];
+        ctx.shadowBlur = 6; ctx.shadowColor = this.palette[0];
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 3, 0, Math.PI*2);
+      ctx.fillStyle = '#fff';
+      ctx.shadowBlur = 10; ctx.shadowColor = this.palette[0];
+      ctx.fill();
+      ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    }
+  }
+
+  // ── Explosion types ──
+  function explode(x, y, palette){
+    const type = Math.random();
+    if(type < 0.25)       burstSphere(x, y, palette);
+    else if(type < 0.45)  burstRing(x, y, palette);
+    else if(type < 0.60)  burstStar(x, y, palette);
+    else if(type < 0.75)  burstChysanthemum(x, y, palette);
+    else if(type < 0.87)  burstDouble(x, y, palette);
+    else                  burstWillow(x, y, palette);
+  }
+
+  function burstSphere(x, y, palette){
+    const count = Math.floor(Math.random()*60 + 80);
+    for(let i=0;i<count;i++){
+      const ang = (i/count)*Math.PI*2;
+      const spd = Math.random()*4+2;
+      const col = palette[Math.floor(Math.random()*palette.length)];
+      particles.push(new Particle(x,y,col,ang,spd,'spark'));
+    }
+  }
+  function burstRing(x, y, palette){
+    const count = 60;
+    for(let i=0;i<count;i++){
+      const ang = (i/count)*Math.PI*2;
+      const col = palette[i%palette.length];
+      particles.push(new Particle(x,y,col,ang,5,'spark'));
+    }
+  }
+  function burstStar(x, y, palette){
+    const arms = 6, perArm = 12;
+    for(let a=0;a<arms;a++){
+      const baseAng = (a/arms)*Math.PI*2;
+      for(let j=0;j<perArm;j++){
+        const ang = baseAng + (Math.random()-0.5)*0.4;
+        const spd = Math.random()*3+2;
+        const col = palette[a%palette.length];
+        const p   = new Particle(x,y,col,ang,spd,'star');
+        p.gravity = 0.04;
+        particles.push(p);
+      }
+    }
+  }
+  function burstChysanthemum(x, y, palette){
+    const count = 120;
+    for(let i=0;i<count;i++){
+      const ang = (i/count)*Math.PI*2;
+      const spd = (Math.random()*2+3) * (1 + 0.5*Math.sin(ang*6));
+      const col = palette[Math.floor(Math.random()*palette.length)];
+      const p   = new Particle(x,y,col,ang,spd,'spark');
+      p.gravity = 0.03; p.decay = 0.01;
+      particles.push(p);
+    }
+  }
+  function burstDouble(x, y, palette){
+    burstSphere(x, y, palette);
+    setTimeout(()=>{
+      const p2 = PALETTES[Math.floor(Math.random()*PALETTES.length)];
+      burstRing(x, y, p2);
+    }, 120);
+  }
+  function burstWillow(x, y, palette){
+    const count = 80;
+    for(let i=0;i<count;i++){
+      const ang = (i/count)*Math.PI*2;
+      const spd = Math.random()*3+2;
+      const col = palette[Math.floor(Math.random()*palette.length)];
+      const p   = new Particle(x,y,col,ang,spd,'trail');
+      p.gravity = 0.12; p.decay = 0.008; p.maxTail = 10;
+      particles.push(p);
+    }
+  }
+
+  // ── Spawn logic ──
+  let rockets    = [];
+  let particles  = [];
+  let lastLaunch = 0;
+  let frameCount = 0;
+
+  function launchRocket(){
+    rockets.push(new Rocket());
+  }
+
+  // ── Main loop ──
+  function loop(){
+    requestAnimationFrame(loop);
+    frameCount++;
+
+    // Fade trail (semi-transparent clear)
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle   = '#080810';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+
+    // Auto-launch — every 60-120 frames, 1-2 rockets
+    if(frameCount - lastLaunch > Math.random()*60 + 60){
+      launchRocket();
+      if(Math.random() > 0.6) setTimeout(launchRocket, 200);
+      lastLaunch = frameCount;
+    }
+
+    // Update & draw rockets
+    rockets = rockets.filter(r => {
+      r.update(); r.draw(); return r.alive;
+    });
+
+    // Update & draw particles
+    particles = particles.filter(p => {
+      p.update(); p.draw(); return !p.isDead();
+    });
+  }
+
+  // Start after a small delay
+  setTimeout(()=>{ launchRocket(); loop(); }, 800);
+
+})();
+</script>
+
+<script>
+// ══════════════════════════════════════════
+// 🔧 CONFIG — Admin-ல் இருந்து copy பண்ணுங்கள்
+// ══════════════════════════════════════════
+const SHEET_API_URL = ''; // உங்கள் Apps Script URL இங்கே போடுங்கள்
+const SETTINGS_KEY = 'crackers_settings';
+// ══════════════════════════════════════════
+
+let allProducts = [];
+let cart = [];
+
+// ── SETTINGS ──
+function loadSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}catch{return{}}}
+function applySettings(){
+  const s=loadSettings();
+  document.getElementById('siteTagline').textContent=s.tagline?.trim()||'அண்ணாச்சி கிராக்கர்ஸ்';
+  document.getElementById('siteFooter').textContent=s.footer?.trim()||'© 2024 Annachi Crackers • அண்ணாச்சி கிராக்கர்ஸ் 🪔';
+  const addrEl=document.getElementById('siteAddress');
+  addrEl.innerHTML=s.address?.trim()?'📍 '+s.address.trim()+(s.mapsUrl?.trim()?` &nbsp;•&nbsp; <a href="${s.mapsUrl.trim()}" target="_blank">Google Maps 🗺️</a>`:''):'';
+  const mq=document.getElementById('offerMarquee');
+  const banner=document.getElementById('offerBanner');
+  if(s.offerText?.trim()){mq.innerHTML=s.offerText.split('|').map(t=>`<span>🎆 ${t.trim()}</span>`).join('');banner.classList.add('show');}
+  else banner.classList.remove('show');
+  const waNum=(s.whatsapp||'').replace(/\D/g,'');
+  const waFab=document.getElementById('waFab');
+  if(waNum){waFab.href=`https://wa.me/${waNum}`;waFab.style.display='flex';}
+  else waFab.style.display='none';
+}
+applySettings();
+
+// ── FETCH FROM GOOGLE SHEETS ──
+async function fetchProducts(){
+  const loading=document.getElementById('loadingBar');
+  const searchSec=document.getElementById('searchSection');
+  loading.classList.add('show');
+  searchSec.style.display='none';
+
+  if(!SHEET_API_URL){
+    loading.classList.remove('show');
+    document.getElementById('productsGrid').innerHTML=`<div class="empty-state"><span class="big-emoji">⚙️</span><h3>Setup pending</h3><p>Admin panel-ல் Google Sheets URL configure பண்ணுங்கள்</p><small>index.html-ல் SHEET_API_URL போடுங்கள்</small></div>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(SHEET_API_URL);
+    if(!res.ok) throw new Error('Fetch failed');
+    const data = await res.json();
+    allProducts = data.products || data || [];
+    // settings from sheet too if provided
+    if(data.settings){
+      const existing = loadSettings();
+      const merged = {...existing, ...data.settings};
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+      applySettings();
+    }
+    loading.classList.remove('show');
+    searchSec.style.display='flex';
+    renderProducts();
+  } catch(e){
+    loading.classList.remove('show');
+    document.getElementById('productsGrid').innerHTML=`<div class="empty-state"><span class="big-emoji">📡</span><h3>Products load ஆகல!</h3><p>Internet connection check பண்ணுங்கள்</p><small>Error: ${e.message}</small></div>`;
+  }
+}
+
+// ── RENDER ──
+const EMOJI_MAP={'sparklers':'✨','rockets':'🚀','bombs':'💥','flower pots':'🌸','ground chakkar':'🌀','sky shots':'🎆','string crackers':'🧨','fancy':'🎇','default':'🧨'};
+function getEmoji(cat){const k=(cat||'').toLowerCase();for(const[a,b]of Object.entries(EMOJI_MAP)){if(k.includes(a))return b}return EMOJI_MAP.default}
+function getStockClass(s){if(s==='Out of Stock')return{cls:'out-stock',label:'❌ Out of Stock'};if(s==='Limited')return{cls:'limited',label:'⚠️ Limited'};return{cls:'in-stock',label:'✅ In Stock'}}
+
+function renderCategories(products){
+  const cats=['all',...new Set(products.map(p=>p.category).filter(Boolean))];
+  const tabs=document.getElementById('categoryTabs');
+  const active=tabs.querySelector('.tab-btn.active')?.dataset.cat||'all';
+  tabs.innerHTML=cats.map(c=>`<button class="tab-btn${c===active?' active':''}" data-cat="${c}">${c==='all'?'🎆 All':getEmoji(c)+' '+c}</button>`).join('');
+  tabs.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{tabs.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts();});});
+}
+
+function renderProducts(){
+  const search=document.getElementById('searchInput').value.toLowerCase();
+  const sort=document.getElementById('sortSelect').value;
+  const activeCat=document.querySelector('.tab-btn.active')?.dataset.cat||'all';
+  const grid=document.getElementById('productsGrid');
+  renderCategories(allProducts);
+  let f=allProducts.filter(p=>(!search||p.name?.toLowerCase().includes(search)||p.nameTa?.toLowerCase().includes(search)||p.category?.toLowerCase().includes(search))&&(activeCat==='all'||p.category===activeCat));
+  if(sort==='price-low')f.sort((a,b)=>Number(a.price)-Number(b.price));
+  if(sort==='price-high')f.sort((a,b)=>Number(b.price)-Number(a.price));
+  if(sort==='name')f.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  if(!f.length){grid.innerHTML=`<div class="empty-state"><span class="big-emoji">🔍</span><h3>${allProducts.length===0?'No products':'No results'}</h3><p>${allProducts.length===0?'Sheet-ல் products add பண்ணுங்கள்':'வேற keyword try பண்ணுங்கள்'}</p></div>`;return;}
+  grid.innerHTML=f.map(p=>{
+    const{cls,label}=getStockClass(p.stock);
+    const badge=p.badge?`<span class="card-badge ${p.badge==='Popular'?'popular':p.badge==='New'?'new':''}">${p.badge}</span>`:'';
+    const img=p.image?`<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">`:(p.emoji||getEmoji(p.category));
+    const isOut=p.stock==='Out of Stock';
+    const pData=encodeURIComponent(JSON.stringify({id:p.id||p.name,name:p.name,price:Number(p.price),category:p.category,unit:p.unit,emoji:p.emoji,image:p.image}));
+    return`<div class="product-card">${badge}<div class="card-img">${img}</div><div class="card-body"><div class="card-category">${p.category||'General'}</div><div class="card-name">${p.name||'Product'}</div>${p.nameTa?`<div class="card-name-ta">${p.nameTa}</div>`:''} ${p.description?`<div class="card-desc">${p.description}</div>`:''}<div class="card-footer"><div class="card-price">₹${Number(p.price||0).toLocaleString('en-IN')} <small>/${p.unit||'box'}</small></div><span class="card-stock ${cls}">${label}</span></div><button class="add-cart-btn" onclick="addToCart('${pData}')" ${isOut?'disabled':''}>${isOut?'❌ Unavailable':'🛒 Cart-ல் சேர்'}</button></div></div>`;
+  }).join('');
+}
+
+// ── CART ──
+function addToCart(encoded){
+  const p=JSON.parse(decodeURIComponent(encoded));
+  const ex=cart.find(i=>i.id===p.id);
+  if(ex)ex.qty++;else cart.push({...p,qty:1});
+  updateCartUI();
+  const fab=document.getElementById('cartFab');
+  fab.classList.remove('bump');void fab.offsetWidth;fab.classList.add('bump');
+}
+function changeQty(idx,d){cart[idx].qty+=d;if(cart[idx].qty<=0)cart.splice(idx,1);updateCartUI();}
+function removeFromCart(idx){cart.splice(idx,1);updateCartUI();}
+function clearCart(){cart=[];updateCartUI();}
+
+function updateCartUI(){
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const count=cart.reduce((s,i)=>s+i.qty,0);
+  const countEl=document.getElementById('cartCount');
+  countEl.textContent=count;countEl.classList.toggle('show',count>0);
+  document.getElementById('cartTotal').textContent='₹'+total.toLocaleString('en-IN');
+  document.getElementById('cartFooter').style.display=cart.length?'block':'none';
+  const itemsEl=document.getElementById('cartItems');
+  if(!cart.length){itemsEl.innerHTML='<div class="cart-empty"><span class="ce-emoji">🧺</span>Cart காலியா இருக்கு!<br><small>Products சேர்த்து order பண்ணுங்கள்</small></div>';return;}
+  itemsEl.innerHTML=cart.map((item,i)=>{
+    const thumb=item.image?`<img src="${item.image}" class="ci-img" alt="${item.name}">`:`<div class="ci-emoji">${item.emoji||getEmoji(item.category)}</div>`;
+    return`<div class="cart-item">${thumb}<div class="ci-info"><div class="ci-name">${item.name}</div><div class="ci-price">₹${Number(item.price).toLocaleString('en-IN')} × ${item.qty} = ₹${(item.price*item.qty).toLocaleString('en-IN')}</div></div><div class="ci-qty"><button class="qty-btn" onclick="changeQty(${i},-1)">−</button><span class="qty-num">${item.qty}</span><button class="qty-btn" onclick="changeQty(${i},1)">+</button></div><button class="ci-remove" onclick="removeFromCart(${i})">✕</button></div>`;
+  }).join('');
+}
+
+function toggleCart(){
+  const d=document.getElementById('cartDrawer');
+  const o=document.getElementById('cartOverlay');
+  const open=d.classList.contains('open');
+  d.classList.toggle('open',!open);
+  o.classList.toggle('show',!open);
+}
+
+function orderOnWhatsApp(){
+  if(!cart.length)return;
+  const s=loadSettings();
+  const waNum=(s.whatsapp||'').replace(/\D/g,'');
+  if(!waNum){alert('Admin panel-ல் WhatsApp number set பண்ணுங்கள்!');return;}
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const lines=cart.map(i=>`• ${i.name} × ${i.qty} = ₹${(i.price*i.qty).toLocaleString('en-IN')}`).join('\n');
+  const msg=`🎆 *Annachi Crackers — Order*\n\n${lines}\n\n*மொத்தம்: ₹${total.toLocaleString('en-IN')}*\n\nPlease confirm my order! 🙏`;
+  window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+document.getElementById('searchInput')?.addEventListener('input',renderProducts);
+document.getElementById('sortSelect')?.addEventListener('change',renderProducts);
+window.addEventListener('storage',()=>applySettings());
+
+fetchProducts();
+
+// ══════════════════════════════════
+// 🎆 FIREWORKS ENGINE
+// ══════════════════════════════════
+(function(){
+  const canvas = document.getElementById('fwCanvas');
+  const ctx    = canvas.getContext('2d');
+
+  function resize(){
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Firework colors — festival palette
+  const COLORS = [
+    '#FFD700','#FF6B35','#E91E8C','#F5A623',
+    '#1ABC9C','#9B59B6','#FF4757','#FFA502',
+    '#FFFFFF','#2ED573','#FF6B81','#70A1FF'
+  ];
+
+  // ── Particle ──
+  class Particle {
+    constructor(x, y, color, angle, speed, type='spark'){
+      this.x     = x;
+      this.y     = y;
+      this.color = color;
+      this.type  = type;
+      this.alpha = 1;
+      this.vx    = Math.cos(angle) * speed;
+      this.vy    = Math.sin(angle) * speed;
+      this.gravity   = type === 'trail' ? 0.04 : 0.09;
+      this.friction  = type === 'trail' ? 0.97 : 0.93;
+      this.decay     = type === 'trail' ? 0.025 : (0.012 + Math.random()*0.01);
+      this.size      = type === 'trail' ? 2 : (1.5 + Math.random()*2);
+      this.tail      = [];
+      this.tailLen   = type === 'spark' ? 5 : 3;
+    }
+    update(){
+      this.tail.unshift({x:this.x, y:this.y});
+      if(this.tail.length > this.tailLen) this.tail.pop();
+      this.vx *= this.friction;
+      this.vy *= this.friction;
+      this.vy += this.gravity;
+      this.x  += this.vx;
+      this.y  += this.vy;
+      this.alpha -= this.decay;
+    }
+    draw(){
+      // draw tail
+      for(let i=0;i<this.tail.length;i++){
+        const a = (this.alpha * (1 - i/this.tail.length)) * 0.5;
+        ctx.beginPath();
+        ctx.arc(this.tail[i].x, this.tail[i].y, this.size*(1-i/this.tail.length)*0.8, 0, Math.PI*2);
+        ctx.fillStyle = hexAlpha(this.color, a);
+        ctx.fill();
+      }
+      // draw head
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+      ctx.fillStyle = hexAlpha(this.color, this.alpha);
+      ctx.fill();
+      // glow
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size*2.5, 0, Math.PI*2);
+      ctx.fillStyle = hexAlpha(this.color, this.alpha*0.15);
+      ctx.fill();
+    }
+    get dead(){ return this.alpha <= 0; }
+  }
+
+  // ── Rocket ──
+  class Rocket {
+    constructor(){
+      this.reset();
+    }
+    reset(){
+      this.x       = canvas.width * (0.15 + Math.random() * 0.7);
+      this.y       = canvas.height + 10;
+      this.targetY = canvas.height * (0.1 + Math.random() * 0.45);
+      this.speed   = 6 + Math.random() * 5;
+      this.color   = COLORS[Math.floor(Math.random()*COLORS.length)];
+      this.trail   = [];
+      this.exploded= false;
+      // slight horizontal drift
+      this.vx      = (Math.random()-0.5)*1.5;
+      this.vy      = -this.speed;
+    }
+    update(){
+      this.trail.unshift({x:this.x, y:this.y});
+      if(this.trail.length>18) this.trail.pop();
+      this.vy += 0.12; // gravity slowing rocket
+      this.x  += this.vx;
+      this.y  += this.vy;
+    }
+    draw(){
+      for(let i=0;i<this.trail.length;i++){
+        const a = (1 - i/this.trail.length)*0.7;
+        const r = (1 - i/this.trail.length)*3;
+        ctx.beginPath();
+        ctx.arc(this.trail[i].x, this.trail[i].y, r, 0, Math.PI*2);
+        ctx.fillStyle = hexAlpha(this.color, a);
+        ctx.fill();
+      }
+      // head glow
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 3.5, 0, Math.PI*2);
+      ctx.fillStyle = hexAlpha(this.color, 0.9);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 7, 0, Math.PI*2);
+      ctx.fillStyle = hexAlpha(this.color, 0.2);
+      ctx.fill();
+    }
+    get shouldExplode(){ return this.y <= this.targetY || this.vy >= 0; }
+  }
+
+  // ── Explosion types ──
+  function explode(x, y, color){
+    const type = Math.floor(Math.random()*5);
+    const ps   = [];
+    if(type===0){
+      // Classic burst
+      const count = 80 + Math.floor(Math.random()*40);
+      for(let i=0;i<count;i++){
+        const angle = (Math.PI*2/count)*i;
+        const speed = 2 + Math.random()*4;
+        ps.push(new Particle(x,y,color,angle,speed,'spark'));
+      }
+    } else if(type===1){
+      // Ring
+      const count = 60;
+      for(let i=0;i<count;i++){
+        const angle = (Math.PI*2/count)*i;
+        ps.push(new Particle(x,y,color,angle,3+Math.random()*1.5,'spark'));
+      }
+      // inner burst
+      for(let i=0;i<30;i++){
+        ps.push(new Particle(x,y,'#FFFFFF',Math.random()*Math.PI*2,1+Math.random()*2,'spark'));
+      }
+    } else if(type===2){
+      // Star / peony — multiple colors
+      const c2 = COLORS[Math.floor(Math.random()*COLORS.length)];
+      for(let i=0;i<100;i++){
+        const angle = Math.random()*Math.PI*2;
+        const speed = 1 + Math.random()*5;
+        ps.push(new Particle(x,y,i%3===0?c2:color,angle,speed,'spark'));
+      }
+    } else if(type===3){
+      // Willow — long slow droop
+      for(let i=0;i<70;i++){
+        const angle = Math.random()*Math.PI*2;
+        const speed = 0.5 + Math.random()*3.5;
+        const p = new Particle(x,y,color,angle,speed,'spark');
+        p.gravity  = 0.04;
+        p.friction = 0.98;
+        p.decay    = 0.006;
+        p.size     = 1.5;
+        p.tailLen  = 12;
+        ps.push(p);
+      }
+    } else {
+      // Crossette — splits
+      const arms = 6 + Math.floor(Math.random()*4);
+      for(let i=0;i<arms;i++){
+        const mainAngle = (Math.PI*2/arms)*i;
+        const mainSpeed = 3 + Math.random()*2;
+        // each arm explodes into 3 sub-sparks
+        for(let j=-1;j<=1;j++){
+          const angle = mainAngle + j*0.35;
+          const speed = mainSpeed*(0.7+Math.random()*0.5);
+          const c3 = j===0 ? color : COLORS[Math.floor(Math.random()*COLORS.length)];
+          ps.push(new Particle(x,y,c3,angle,speed,'spark'));
+        }
+      }
+    }
+
+    // Flash
+    flashes.push({x,y,color,alpha:1,r:60});
+    return ps;
+  }
+
+  // ── State ──
+  let rockets   = [];
+  let particles = [];
+  let flashes   = [];
+  let lastLaunch= 0;
+
+  // Launch interval: 600–1400ms random
+  function maybelaunch(now){
+    const interval = 700 + Math.random()*700;
+    if(now - lastLaunch > interval){
+      rockets.push(new Rocket());
+      // occasionally launch 2 at once
+      if(Math.random()<0.25) rockets.push(new Rocket());
+      lastLaunch = now;
+    }
+  }
+
+  function hexAlpha(hex, alpha){
+    // parse hex to rgb
+    let r=255,g=255,b=255;
+    if(hex.length===7){
+      r=parseInt(hex.slice(1,3),16);
+      g=parseInt(hex.slice(3,5),16);
+      b=parseInt(hex.slice(5,7),16);
+    }
+    return `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+  }
+
+  function loop(now){
+    requestAnimationFrame(loop);
+
+    // Fade trail — dark translucent rect
+    ctx.fillStyle = 'rgba(8,8,16,0.22)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    maybelaunch(now);
+
+    // Flashes
+    flashes = flashes.filter(f=>{
+      f.alpha -= 0.07;
+      if(f.alpha<=0) return false;
+      const g = ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r*(1+(1-f.alpha)*1.5));
+      g.addColorStop(0, hexAlpha(f.color, f.alpha*0.8));
+      g.addColorStop(1, hexAlpha(f.color, 0));
+      ctx.beginPath();
+      ctx.arc(f.x,f.y,f.r*(1+(1-f.alpha)*1.5),0,Math.PI*2);
+      ctx.fillStyle=g;
+      ctx.fill();
+      return true;
+    });
+
+    // Rockets
+    rockets = rockets.filter(r=>{
+      r.update();
+      if(r.shouldExplode){
+        const newPs = explode(r.x, r.y, r.color);
+        particles.push(...newPs);
+        return false;
+      }
+      r.draw();
+      return true;
+    });
+
+    // Particles
+    particles = particles.filter(p=>{
+      p.update();
+      if(!p.dead){ p.draw(); return true; }
+      return false;
+    });
+  }
+
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

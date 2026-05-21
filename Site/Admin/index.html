@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - Annachi Crackers</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root{--gold:#F5A623;--dark-bg:#0A0A0F;--card-bg:#13131A;--card-border:#2A2A3A;--text-primary:#F5F0E8;--text-muted:#9A8FA0;--green:#27AE60;--danger:#E74C3C}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--dark-bg);color:var(--text-primary);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+  /* HEADER */
+  header{background:var(--card-bg);border-bottom:1px solid var(--card-border);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;position:sticky;top:0;z-index:100}
+  .header-left{display:flex;align-items:center;gap:.75rem}
+  header h1{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;background:linear-gradient(135deg,#F5A623,#E67E22);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .back-link{color:var(--text-muted);text-decoration:none;font-size:.85rem;padding:.4rem .8rem;border:1px solid var(--card-border);border-radius:6px;transition:all .2s}
+  .back-link:hover{border-color:var(--gold);color:var(--gold)}
+  .hdr-btn{padding:.4rem .9rem;background:transparent;border:1px solid var(--card-border);color:var(--text-muted);border-radius:6px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+  .hdr-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .hdr-btn-danger{border-color:#E74C3C30;color:#E74C3C80}
+  .hdr-btn-danger:hover{border-color:var(--danger);color:var(--danger)}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;padding:1.5rem;max-width:1100px;margin:0 auto}
+  .stat-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:1rem;text-align:center}
+  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold)}
+  .stat-label{font-size:.78rem;color:var(--text-muted);margin-top:.2rem}
+
+  /* FORM ELEMENTS */
+  label{display:block;font-size:.8rem;color:var(--text-muted);margin-bottom:.35rem;margin-top:.75rem;font-weight:500}
+  label:first-child{margin-top:0}
+  input[type=text],input[type=number],input[type=password],textarea,select{width:100%;background:#1A1A25;border:1px solid var(--card-border);border-radius:8px;padding:.6rem .85rem;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s}
+  input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+  input::placeholder,textarea::placeholder{color:var(--text-muted)}
+  textarea{resize:vertical;min-height:70px}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+
+  /* EMOJI */
+  .emoji-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:.5rem}
+  .emoji-btn{width:38px;height:38px;border-radius:8px;border:1px solid var(--card-border);background:#1A1A25;font-size:1.3rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+  .emoji-btn:hover,.emoji-btn.selected{border-color:var(--gold);background:#F5A62320;transform:scale(1.1)}
+
+  /* BUTTONS */
+  .btn-primary{width:100%;margin-top:1rem;padding:.75rem;background:var(--gold);color:#0A0A0F;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+  .btn-primary:hover{background:#E59A1A;transform:translateY(-1px)}
+  .btn-sm-edit{padding:.3rem .7rem;background:transparent;border:1px solid #F5A62340;color:var(--gold);border-radius:6px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+  .btn-sm-edit:hover{background:#F5A62315}
+  .btn-sm-del{padding:.3rem .7rem;background:transparent;border:1px solid #E74C3C40;color:var(--danger);border-radius:6px;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+  .btn-sm-del:hover{background:#E74C3C15}
+
+  /* PANEL */
+  .panel{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;overflow:hidden}
+  .panel-header{padding:1rem 1.25rem;border-bottom:1px solid var(--card-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+  .panel-title{font-size:.95rem;font-weight:600;color:var(--text-primary)}
+  .panel-body{padding:1.25rem}
+
+  /* LAYOUT */
+  .section-wrap{max-width:1100px;margin:0 auto;padding:0 1.5rem 1.25rem}
+  .main-layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;padding:0 1.5rem 2rem;max-width:1100px;margin:0 auto}
+  @media(max-width:700px){.main-layout{grid-template-columns:1fr}.row-3{grid-template-columns:1fr 1fr}}
+
+  /* PRODUCT LIST */
+  .product-list{max-height:520px;overflow-y:auto}
+  .product-item{display:flex;align-items:center;gap:.75rem;padding:.75rem;border-bottom:1px solid var(--card-border);transition:background .15s}
+  .product-item:last-child{border-bottom:none}
+  .product-item:hover{background:#1A1A25}
+  .item-emoji{font-size:1.8rem;flex-shrink:0;width:36px;text-align:center}
+  .item-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0}
+  .item-info{flex:1;min-width:0}
+  .item-name{font-size:.9rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item-meta{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+  .item-price{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--gold);flex-shrink:0}
+  .item-actions{display:flex;gap:.4rem;flex-shrink:0}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--green);color:#fff;padding:.75rem 1.25rem;border-radius:8px;font-size:.88rem;font-weight:500;z-index:2000;transform:translateY(100px);opacity:0;transition:all .3s;box-shadow:0 4px 20px #27AE6040;max-width:320px}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.error{background:var(--danger)}
+
+  /* IMAGE UPLOAD */
+  .img-upload-area{border:2px dashed var(--card-border);border-radius:10px;padding:1.25rem;text-align:center;cursor:pointer;transition:all .2s;margin-top:.5rem;background:#1A1A25;position:relative}
+  .img-upload-area:hover,.img-upload-area.dragover{border-color:var(--gold);background:#F5A62308}
+  .img-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .img-preview-wrap{position:relative;display:inline-block;width:100%}
+  .img-preview{width:100%;max-height:140px;object-fit:cover;border-radius:8px;display:block}
+  .img-remove-btn{position:absolute;top:5px;right:5px;background:#E74C3C;color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:.75rem;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .img-upload-hint{color:var(--text-muted);font-size:.82rem;pointer-events:none}
+  .img-upload-hint span{font-size:1.5rem;display:block;margin-bottom:.3rem}
+
+  /* LOGIN */
+  .login-overlay{position:fixed;inset:0;z-index:9999;background:#080810;display:flex;align-items:center;justify-content:center;padding:1rem}
+  .login-box{background:#13131A;border:1px solid #2A2A3A;border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px #000a}
+  .login-logo{font-size:2.5rem;margin-bottom:.5rem}
+  .login-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;background:linear-gradient(135deg,#F5A623,#E67E22);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.3rem}
+  .login-sub{font-size:.82rem;color:var(--text-muted);margin-bottom:1.75rem}
+  .login-field{margin-bottom:1rem;text-align:left}
+  .login-field label{font-size:.78rem;color:var(--text-muted);display:block;margin-bottom:.35rem;margin-top:0;font-weight:500}
+  .login-field input{width:100%;background:#1A1A25;border:1px solid #2A2A3A;border-radius:8px;padding:.7rem 1rem;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
+  .login-field input:focus{border-color:var(--gold)}
+  .login-btn{width:100%;margin-top:.5rem;padding:.8rem;background:linear-gradient(135deg,#F5A623,#E67E22);color:#0A0A0F;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+  .login-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+  .login-err{color:#E74C3C;font-size:.82rem;margin-top:.75rem;min-height:1.2rem}
+  .login-hint{font-size:.75rem;color:#3A3A4A;margin-top:1.25rem}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;z-index:500;background:#00000088;backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:1rem}
+  .modal-overlay.show{display:flex}
+  .modal-box{background:#13131A;border:1px solid #2A2A3A;border-radius:14px;padding:2rem;width:100%;max-width:360px}
+  .modal-title{font-size:1rem;font-weight:600;margin-bottom:1.25rem;color:var(--gold)}
+  .modal-box label{font-size:.78rem;color:var(--text-muted);display:block;margin-bottom:.3rem;margin-top:.75rem}
+  .modal-box label:first-of-type{margin-top:0}
+  .modal-box input{width:100%;background:#1A1A25;border:1px solid #2A2A3A;border-radius:8px;padding:.6rem .85rem;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s}
+  .modal-box input:focus{border-color:var(--gold)}
+  .modal-actions{display:flex;gap:.75rem;margin-top:1.25rem}
+  .modal-save{flex:1;padding:.65rem;background:var(--gold);color:#0A0A0F;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem}
+  .modal-cancel{flex:1;padding:.65rem;background:transparent;color:var(--text-muted);border:1px solid #2A2A3A;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem}
+  .modal-err{color:#E74C3C;font-size:.78rem;margin-top:.5rem}
+
+  /* GOOGLE SHEETS SETUP PANEL */
+  .sheet-panel{background:linear-gradient(135deg,#091509,#0A1A0A);border:1px solid #27AE6030;border-radius:12px;padding:1.5rem}
+  .sheet-title{font-size:1rem;font-weight:600;color:#2ECC71;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+  .step-item{display:flex;gap:.85rem;margin-bottom:1rem;align-items:flex-start}
+  .step-num{background:#27AE6025;color:#2ECC71;border:1px solid #27AE6050;border-radius:50%;width:24px;height:24px;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .step-text{font-size:.83rem;color:var(--text-muted);line-height:1.65;flex:1}
+  .step-text strong{color:var(--text-primary)}
+  .step-text a{color:#2ECC71;text-decoration:none}
+  .step-text a:hover{text-decoration:underline}
+  .code-box{background:#050A05;border:1px solid #27AE6025;border-radius:8px;padding:.85rem 1rem;font-family:'Courier New',monospace;font-size:.76rem;color:#2ECC71;margin:.6rem 0;overflow-x:auto;white-space:pre;line-height:1.7}
+  .url-row{display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap}
+  .url-row input{flex:1;min-width:200px;background:#050A05;border:1px solid #27AE6040;border-radius:8px;padding:.6rem .85rem;color:#2ECC71;font-family:'Courier New',monospace;font-size:.8rem;outline:none;transition:border-color .2s}
+  .url-row input:focus{border-color:#2ECC71}
+  .url-row input::placeholder{color:#27AE6040}
+  .save-url-btn{padding:.6rem 1.2rem;background:#27AE60;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all .2s}
+  .save-url-btn:hover{background:#2ECC71}
+  .url-saved-note{font-size:.75rem;margin-top:.5rem;padding:.5rem .75rem;border-radius:6px;display:none}
+  .url-saved-note.show{display:block;background:#27AE6015;border:1px solid #27AE6030;color:#2ECC71}
+  .url-saved-note.warn{display:block;background:#F5A62315;border:1px solid #F5A62330;color:#F5A623}
+
+  ::-webkit-scrollbar{width:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">🔐</div>
+    <div class="login-title">ADMIN LOGIN</div>
+    <div class="login-sub">Annachi Crackers • Admin Panel</div>
+    <div class="login-field"><label>Username</label><input type="text" id="loginUser" placeholder="Enter username" autocomplete="username"></div>
+    <div class="login-field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password"></div>
+    <button class="login-btn" onclick="doLogin()">🔓 Login</button>
+    <div class="login-err" id="loginErr"></div>
+    <div class="login-hint">Default: admin / admin123</div>
+  </div>
+</div>
+
+<!-- CHANGE CREDENTIALS MODAL -->
+<div class="modal-overlay" id="changePwModal">
+  <div class="modal-box">
+    <div class="modal-title">🔑 Change Credentials</div>
+    <label>New Username</label><input type="text" id="newUser" placeholder="New username">
+    <label>New Password</label><input type="password" id="newPass" placeholder="Min 4 characters">
+    <label>Confirm Password</label><input type="password" id="confPass" placeholder="Confirm password">
+    <div class="modal-err" id="pwErr"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-save" onclick="saveCredentials()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left"><span style="font-size:1.5rem">⚙️</span><h1>ADMIN PANEL</h1></div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+    <button class="hdr-btn" onclick="exportData()">📤 Export</button>
+    <label class="hdr-btn" style="cursor:pointer;margin:0">📥 Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+    <button class="hdr-btn" onclick="openModal()">🔑 Credentials</button>
+    <button class="hdr-btn hdr-btn-danger" onclick="clearAll()">🗑️ Clear All</button>
+    <a href="index.html" class="back-link">← View Site</a>
+    <button class="hdr-btn hdr-btn-danger" onclick="doLogout()">🚪 Logout</button>
+  </div>
+</header>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-num" id="totalCount">0</div><div class="stat-label">Total Products</div></div>
+  <div class="stat-card"><div class="stat-num" id="categoryCount">0</div><div class="stat-label">Categories</div></div>
+  <div class="stat-card"><div class="stat-num" id="inStockCount">0</div><div class="stat-label">In Stock</div></div>
+  <div class="stat-card"><div class="stat-num" id="avgPrice">₹0</div><div class="stat-label">Avg Price</div></div>
+</div>
+
+<!-- GOOGLE SHEETS SETUP -->
+<div class="section-wrap">
+  <div class="sheet-panel">
+    <div class="sheet-title">🔗 Google Sheets Database Setup — ஒரே முறை பண்ணினா போதும்!</div>
+
+    <div class="step-item">
+      <span class="step-num">1</span>
+      <div class="step-text"><strong>Google Sheets open பண்ணுங்கள்</strong><br>
+        <a href="https://sheets.new" target="_blank">sheets.new</a> → New blank sheet → Sheet name: <strong>Annachi Crackers</strong>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">2</span>
+      <div class="step-text"><strong>Row 1-ல் இந்த headers சரியா போடுங்கள்:</strong>
+        <div class="code-box">id	name	nameTa	category	price	unit	stock	badge	description	emoji</div>
+        (Tab key-ல் அடுத்த column-க்கு போகலாம்)
+      </div>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">3</span>
+      <div class="step-text"><strong>Row 2-ல் இருந்து products enter பண்ணுங்கள்</strong><br>
+        stock column-ல் exactly: <strong>In Stock</strong> / <strong>Limited</strong> / <strong>Out of Stock</strong><br>
+        badge column-ல்: <strong>Popular</strong> / <strong>New</strong> / <strong>Offer</strong> (or empty)
+      </div>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">4</span>
+      <div class="step-text"><strong>Apps Script open பண்ணுங்கள்</strong><br>
+        Sheet menu: <strong>Extensions → Apps Script</strong> → திறக்கும் editor-ல் இருக்கும் code-ஐ delete பண்ணி இந்த code paste பண்ணுங்கள்:
+        <div class="code-box">function doGet(e) {
+  const sheet = SpreadsheetApp
+    .getActiveSpreadsheet()
+    .getActiveSheet();
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = data.slice(1).filter(r => r[1] !== '');
+
+  const products = rows.map(row => {
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[String(h).trim()] = row[i] !== undefined
+        ? String(row[i]).trim() : '';
+    });
+    obj.price = Number(obj.price) || 0;
+    obj.id = obj.id || String(row[1]);
+    return obj;
+  });
+
+  const output = JSON.stringify({ products });
+  return ContentService
+    .createTextOutput(output)
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">5</span>
+      <div class="step-text"><strong>Deploy பண்ணுங்கள்</strong><br>
+        <strong>Deploy → New deployment</strong> → gear icon → <strong>Web app</strong> →<br>
+        Execute as: <strong>Me</strong> &nbsp;|&nbsp; Who has access: <strong>Anyone</strong> → <strong>Deploy</strong><br>
+        Permission கேட்டா → Allow பண்ணுங்கள் → URL copy பண்ணுங்கள்
+      </div>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">6</span>
+      <div class="step-text"><strong>URL இங்கே paste பண்ணி Save பண்ணுங்கள்:</strong>
+        <div class="url-row">
+          <input type="text" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+          <button class="save-url-btn" onclick="saveSheetUrl()">✅ Save & Copy</button>
+        </div>
+        <div class="url-saved-note" id="urlNote"></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">7</span>
+      <div class="step-text"><strong>index.html-ல் URL update பண்ணுங்கள்</strong><br>
+        index.html file open பண்ணி இந்த line தேடுங்கள்:<br>
+        <div class="code-box">const SHEET_API_URL = ''; // உங்கள் Apps Script URL இங்கே போடுங்கள்</div>
+        அதை இப்படி மாத்துங்கள்:
+        <div class="code-box" id="urlCopyBox">const SHEET_API_URL = 'உங்கள் URL இங்கே வரும்';</div>
+        பிறகு GitHub-ல் index.html update பண்ணுங்கள் — Done! 🎉
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SITE SETTINGS -->
+<div class="section-wrap">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">🎨 Site Settings</span>
+      <span style="font-size:.75rem;color:var(--text-muted)">Customer site-ல் காட்டும் — Save பண்ணினா உடனே apply ஆகும்</span>
+    </div>
+    <div style="padding:1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem">
+      <div>
+        <label style="margin-top:0">✨ Header Tagline</label>
+        <input type="text" id="taglineInput" placeholder="தீபாவளி விழா சிறப்பு தள்ளுபடி 🎆" maxlength="120">
+      </div>
+      <div>
+        <label style="margin-top:0">📝 Footer Text</label>
+        <input type="text" id="footerInput" placeholder="© 2024 Annachi Crackers 🪔" maxlength="160">
+      </div>
+      <div>
+        <label style="margin-top:0">📱 WhatsApp Number</label>
+        <input type="text" id="whatsappInput" placeholder="919XXXXXXXXX">
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.3rem">India: 91 போட்டு 10 digit number</div>
+      </div>
+      <div>
+        <label style="margin-top:0">📍 Shop Address</label>
+        <input type="text" id="addressInput" placeholder="12, Main Road, Sivakasi - 626123">
+      </div>
+      <div>
+        <label style="margin-top:0">🗺️ Google Maps URL</label>
+        <input type="text" id="mapsInput" placeholder="https://maps.google.com/...">
+      </div>
+      <div>
+        <label style="margin-top:0">📢 Offer Banner</label>
+        <input type="text" id="offerInput" placeholder="10% off above ₹500 | Free delivery above ₹1000">
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.3rem">| வைத்து பிரிக்கவும் • Empty = banner hide ஆகும்</div>
+      </div>
+    </div>
+    <div style="padding:0 1.25rem 1.25rem">
+      <button class="btn-primary" onclick="saveAllSettings()" style="max-width:260px">💾 All Settings Save பண்ணு</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN: FORM + LIST -->
+<div class="main-layout">
+
+  <!-- ADD / EDIT FORM -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title" id="formTitle">➕ Add New Product</span>
+      <button class="btn-sm-edit" id="cancelEditBtn" onclick="cancelEdit()" style="display:none">✕ Cancel</button>
+    </div>
+    <div class="panel-body">
+      <input type="hidden" id="editId">
+
+      <label>Product Name (English) *</label>
+      <input type="text" id="prodName" placeholder="e.g. Mega Flower Pot">
+
+      <label>தமிழ் பெயர் (Optional)</label>
+      <input type="text" id="prodNameTa" placeholder="e.g. பூத்தொட்டி மெகா">
+
+      <div class="row-2">
+        <div>
+          <label>Category *</label>
+          <input type="text" id="prodCategory" placeholder="Flower Pots" list="catList">
+          <datalist id="catList">
+            <option value="Sparklers"><option value="Rockets"><option value="Flower Pots">
+            <option value="Ground Chakkar"><option value="Sky Shots"><option value="Bombs">
+            <option value="String Crackers"><option value="Fancy Items"><option value="Gift Box">
+          </datalist>
+        </div>
+        <div>
+          <label>Price (₹) *</label>
+          <input type="number" id="prodPrice" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <div class="row-3">
+        <div>
+          <label>Unit</label>
+          <select id="prodUnit">
+            <option value="box">box</option><option value="piece">piece</option>
+            <option value="packet">packet</option><option value="dozen">dozen</option><option value="set">set</option>
+          </select>
+        </div>
+        <div>
+          <label>Stock Status</label>
+          <select id="prodStock">
+            <option value="In Stock">In Stock</option>
+            <option value="Limited">Limited</option>
+            <option value="Out of Stock">Out of Stock</option>
+          </select>
+        </div>
+        <div>
+          <label>Badge</label>
+          <select id="prodBadge">
+            <option value="">None</option>
+            <option value="Popular">🔥 Popular</option>
+            <option value="New">✨ New</option>
+            <option value="Offer">🎉 Offer</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Description (Optional)</label>
+      <textarea id="prodDesc" placeholder="சிறப்பம்சங்கள், விளக்கம்..."></textarea>
+
+      <label>Emoji Icon</label>
+      <div class="emoji-grid" id="emojiGrid">🧨 🎆 🎇 ✨ 🚀 💥 🌸 🌀 🎊 🎉 🪔 ⭐ 🌟 💫 🔥 🎯 🌈 🎁 🏮 🛸</div>
+      <input type="hidden" id="prodEmoji" value="🧨">
+
+      <label>Product Image (Optional — max 2MB)</label>
+      <div class="img-upload-area" id="imgUploadArea">
+        <input type="file" accept="image/*" id="imgFileInput" onchange="handleImageUpload(event)">
+        <div id="imgPreviewContainer">
+          <div class="img-upload-hint"><span>🖼️</span>Click or drag photo here<br>JPG, PNG, WEBP</div>
+        </div>
+      </div>
+      <input type="hidden" id="prodImage" value="">
+
+      <button class="btn-primary" id="submitBtn" onclick="saveProduct()">✅ Add to Local List</button>
+
+      <div style="margin-top:.75rem;padding:.75rem 1rem;background:#0A1209;border:1px solid #27AE6020;border-radius:8px;font-size:.78rem;color:#27AE60;line-height:1.6">
+        💡 <strong>Workflow:</strong> இங்கே add பண்ணி local-ஆ test பண்ணலாம். Final products-ஐ Google Sheet-ல் directly enter பண்றது best — அப்படி பண்ணினா எல்லா customers-கும் தெரியும்.
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCT LIST -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">📋 Local Products</span>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <input type="text" id="adminSearch" placeholder="Search..." style="width:120px;padding:.3rem .7rem;font-size:.8rem;background:#1A1A25;border:1px solid var(--card-border);border-radius:6px;color:var(--text-primary);outline:none">
+      </div>
+    </div>
+    <div class="product-list" id="productList">
+      <div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.88rem">
+        <div style="font-size:2rem;margin-bottom:.5rem">📋</div>
+        Local-ஆ add பண்ண products இங்கே தெரியும்.<br>
+        <span style="font-size:.78rem">Google Sheet-ல் add பண்றது recommended!</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ CONSTANTS ══
+const STORAGE_KEY  = 'crackers_products';
+const SETTINGS_KEY = 'crackers_settings';
+const AUTH_KEY     = 'crackers_auth';
+const SESSION_KEY  = 'crackers_session';
+const SHEET_URL_KEY= 'crackers_sheet_url';
+
+// ══ AUTH ══
+function getAuth(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'{}')}catch{return{}}}
+function doLogin(){
+  const creds = Object.keys(getAuth()).length ? getAuth() : {username:'admin',password:'admin123'};
+  const user  = document.getElementById('loginUser').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const err   = document.getElementById('loginErr');
+  if(!user||!pass){err.textContent='Username & Password enter பண்ணுங்கள்!';return}
+  if(user===creds.username && pass===creds.password){
+    sessionStorage.setItem(SESSION_KEY,'1');
+    document.getElementById('loginOverlay').style.display='none';
+    err.textContent='';
+  } else {
+    err.textContent='❌ Wrong username or password!';
+    document.getElementById('loginPass').value='';
+  }
+}
+function doLogout(){
+  sessionStorage.removeItem(SESSION_KEY);
+  ['loginUser','loginPass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('loginErr').textContent='';
+  document.getElementById('loginOverlay').style.display='flex';
+}
+function checkSession(){
+  document.getElementById('loginOverlay').style.display =
+    sessionStorage.getItem(SESSION_KEY) ? 'none' : 'flex';
+}
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+// ══ CREDENTIALS MODAL ══
+function openModal(){document.getElementById('changePwModal').classList.add('show')}
+function closeModal(){
+  document.getElementById('changePwModal').classList.remove('show');
+  ['newUser','newPass','confPass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pwErr').textContent='';
+}
+function saveCredentials(){
+  const user=document.getElementById('newUser').value.trim();
+  const pass=document.getElementById('newPass').value;
+  const conf=document.getElementById('confPass').value;
+  const err =document.getElementById('pwErr');
+  if(!user){err.textContent='Username enter பண்ணுங்கள்!';return}
+  if(pass.length<4){err.textContent='Password min 4 characters!';return}
+  if(pass!==conf){err.textContent='Passwords match ஆகல!';return}
+  localStorage.setItem(AUTH_KEY,JSON.stringify({username:user,password:pass}));
+  showToast('✅ Credentials updated!');closeModal();
+}
+
+// ══ SHEET URL ══
+function saveSheetUrl(){
+  const url  = document.getElementById('sheetUrlInput').value.trim();
+  const note = document.getElementById('urlNote');
+  if(!url || !url.includes('script.google.com')){
+    note.className='url-saved-note warn';note.style.display='block';
+    note.textContent='⚠️ Valid Apps Script URL போடுங்கள் (https://script.google.com/macros/s/.../exec)';
+    return;
+  }
+  localStorage.setItem(SHEET_URL_KEY, url);
+  document.getElementById('urlCopyBox').textContent = `const SHEET_API_URL = '${url}';`;
+  note.className='url-saved-note show';
+  note.textContent='✅ Saved! இப்போ index.html-ல் SHEET_API_URL line-ஐ மேலே காட்டிய மாதிரி update பண்ணி GitHub-ல் push பண்ணுங்கள்.';
+  showToast('✅ Sheet URL saved!');
+}
+function initSheetUrl(){
+  const saved = localStorage.getItem(SHEET_URL_KEY);
+  if(saved){
+    document.getElementById('sheetUrlInput').value = saved;
+    document.getElementById('urlCopyBox').textContent = `const SHEET_API_URL = '${saved}';`;
+    const note = document.getElementById('urlNote');
+    note.className='url-saved-note show';
+    note.textContent='✅ URL already configured. index.html-ல் update ஆச்சா check பண்ணுங்கள்.';
+  }
+}
+
+// ══ TOAST ══
+function showToast(msg, isError=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(isError?' error':'');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ══ PRODUCTS ══
+function getProducts(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch{return[]}}
+function saveProds(p){localStorage.setItem(STORAGE_KEY,JSON.stringify(p))}
+
+// emoji selector init
+const egEl   = document.getElementById('emojiGrid');
+const emojis = egEl.textContent.trim().split(' ').filter(e=>e.trim());
+egEl.innerHTML = emojis.map(e =>
+  `<button type="button" class="emoji-btn${e==='🧨'?' selected':''}" onclick="selectEmoji(this,'${e}')">${e}</button>`
+).join('');
+function selectEmoji(btn,emoji){
+  document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('prodEmoji').value=emoji;
+}
+
+function updateStats(){
+  const p=getProducts();
+  document.getElementById('totalCount').textContent=p.length;
+  document.getElementById('categoryCount').textContent=new Set(p.map(x=>x.category)).size;
+  document.getElementById('inStockCount').textContent=p.filter(x=>x.stock==='In Stock').length;
+  const avg=p.length?Math.round(p.reduce((s,x)=>s+Number(x.price||0),0)/p.length):0;
+  document.getElementById('avgPrice').textContent='₹'+avg.toLocaleString('en-IN');
+}
+
+function renderList(){
+  const prods    = getProducts();
+  const search   = document.getElementById('adminSearch').value.toLowerCase();
+  const filtered = prods.filter(p=>
+    !search||(p.name||'').toLowerCase().includes(search)||(p.category||'').toLowerCase().includes(search)
+  );
+  const list = document.getElementById('productList');
+  if(!filtered.length){
+    list.innerHTML=`<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.88rem">${prods.length===0?'<div style="font-size:2rem;margin-bottom:.5rem">📋</div>No local products yet.':'No results found.'}</div>`;
+    updateStats(); return;
+  }
+  list.innerHTML=filtered.map(p=>`
+    <div class="product-item">
+      ${p.image
+        ? `<img src="${p.image}" class="item-thumb" alt="${p.name}">`
+        : `<div class="item-emoji">${p.emoji||'🧨'}</div>`}
+      <div class="item-info">
+        <div class="item-name">${p.name||'—'}</div>
+        <div class="item-meta">${p.category||''} • ${p.stock||'In Stock'}</div>
+      </div>
+      <div class="item-price">₹${Number(p.price||0).toLocaleString('en-IN')}</div>
+      <div class="item-actions">
+        <button class="btn-sm-edit" onclick="editProduct('${p.id}')">✏️</button>
+        <button class="btn-sm-del"  onclick="deleteProduct('${p.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+  updateStats();
+}
+
+function saveProduct(){
+  const name     = document.getElementById('prodName').value.trim();
+  const price    = document.getElementById('prodPrice').value.trim();
+  const category = document.getElementById('prodCategory').value.trim();
+  if(!name)    {showToast('Product name இல்லாம save ஆகாது!',true);return}
+  if(!price)   {showToast('Price enter பண்ணுங்கள்!',true);return}
+  if(!category){showToast('Category enter பண்ணுங்கள்!',true);return}
+  const editId   = document.getElementById('editId').value;
+  const products = getProducts();
+  const product  = {
+    id         : editId || Date.now().toString(),
+    name, price: Number(price), category,
+    nameTa     : document.getElementById('prodNameTa').value.trim(),
+    unit       : document.getElementById('prodUnit').value,
+    stock      : document.getElementById('prodStock').value,
+    badge      : document.getElementById('prodBadge').value,
+    description: document.getElementById('prodDesc').value.trim(),
+    emoji      : document.getElementById('prodEmoji').value,
+    image      : document.getElementById('prodImage').value || '',
+    updatedAt  : new Date().toISOString()
+  };
+  if(editId){
+    const idx=products.findIndex(p=>p.id===editId);
+    if(idx!==-1)products[idx]=product;
+    showToast('✅ Product updated!');
+  } else {
+    products.push(product);
+    showToast('✅ Added! Sheet-லயும் add பண்ண மறக்காதீங்க 📋');
+  }
+  saveProds(products); resetForm(); renderList();
+}
+
+function resetForm(){
+  ['prodName','prodNameTa','prodCategory','prodPrice','prodDesc','editId','prodImage']
+    .forEach(id=>document.getElementById(id).value='');
+  document.getElementById('prodUnit').value  = 'box';
+  document.getElementById('prodStock').value = 'In Stock';
+  document.getElementById('prodBadge').value = '';
+  document.getElementById('prodEmoji').value = '🧨';
+  document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelector('.emoji-btn')?.classList.add('selected');
+  document.getElementById('imgPreviewContainer').innerHTML =
+    `<div class="img-upload-hint"><span>🖼️</span>Click or drag photo here<br>JPG, PNG, WEBP</div>`;
+  document.getElementById('imgFileInput').value = '';
+  document.getElementById('formTitle').textContent    = '➕ Add New Product';
+  document.getElementById('submitBtn').textContent    = '✅ Add to Local List';
+  document.getElementById('cancelEditBtn').style.display = 'none';
+}
+
+function editProduct(id){
+  const p=getProducts().find(p=>p.id===id); if(!p)return;
+  document.getElementById('editId').value      = p.id;
+  document.getElementById('prodName').value    = p.name||'';
+  document.getElementById('prodNameTa').value  = p.nameTa||'';
+  document.getElementById('prodCategory').value= p.category||'';
+  document.getElementById('prodPrice').value   = p.price||'';
+  document.getElementById('prodUnit').value    = p.unit||'box';
+  document.getElementById('prodStock').value   = p.stock||'In Stock';
+  document.getElementById('prodBadge').value   = p.badge||'';
+  document.getElementById('prodDesc').value    = p.description||'';
+  document.getElementById('prodEmoji').value   = p.emoji||'🧨';
+  document.getElementById('prodImage').value   = p.image||'';
+  document.getElementById('imgPreviewContainer').innerHTML = p.image
+    ? `<div class="img-preview-wrap"><img src="${p.image}" class="img-preview"><button type="button" class="img-remove-btn" onclick="removeImage()">✕</button></div>`
+    : `<div class="img-upload-hint"><span>🖼️</span>Click or drag photo here</div>`;
+  document.querySelectorAll('.emoji-btn').forEach(b=>
+    b.classList.toggle('selected', b.textContent.trim()===(p.emoji||'🧨'))
+  );
+  document.getElementById('formTitle').textContent    = '✏️ Edit Product';
+  document.getElementById('submitBtn').textContent    = '💾 Save Changes';
+  document.getElementById('cancelEditBtn').style.display = 'inline-block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function cancelEdit(){resetForm()}
+
+function deleteProduct(id){
+  if(!confirm('Delete பண்ணலாமா?'))return;
+  saveProds(getProducts().filter(p=>p.id!==id));
+  renderList(); showToast('🗑️ Deleted!');
+}
+
+function clearAll(){
+  if(!confirm('எல்லா local products-ம் delete ஆகும்! Sure?'))return;
+  localStorage.removeItem(STORAGE_KEY);
+  renderList(); updateStats(); showToast('🗑️ All cleared!');
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(getProducts(),null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='annachi_products.json'; a.click();
+  showToast('📤 Exported!');
+}
+
+function importData(event){
+  const file=event.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!Array.isArray(data))throw new Error();
+      saveProds(data); renderList();
+      showToast(`📥 ${data.length} products imported!`);
+    }catch{showToast('Invalid JSON file!',true);}
+  };
+  reader.readAsText(file); event.target.value='';
+}
+
+// image upload
+function handleImageUpload(event){
+  const file=event.target.files[0]; if(!file)return;
+  if(file.size>2*1024*1024){showToast('Image 2MB-க்கு மேல்! Compress பண்ணுங்கள்.',true);return}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('prodImage').value=e.target.result;
+    document.getElementById('imgPreviewContainer').innerHTML=
+      `<div class="img-preview-wrap"><img src="${e.target.result}" class="img-preview"><button type="button" class="img-remove-btn" onclick="removeImage()">✕</button></div>`;
+  };
+  reader.readAsDataURL(file);
+}
+function removeImage(){
+  document.getElementById('prodImage').value='';
+  document.getElementById('imgFileInput').value='';
+  document.getElementById('imgPreviewContainer').innerHTML=
+    `<div class="img-upload-hint"><span>🖼️</span>Click or drag photo here</div>`;
+}
+const ua=document.getElementById('imgUploadArea');
+ua.addEventListener('dragover',e=>{e.preventDefault();ua.classList.add('dragover')});
+ua.addEventListener('dragleave',()=>ua.classList.remove('dragover'));
+ua.addEventListener('drop',e=>{
+  e.preventDefault(); ua.classList.remove('dragover');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('image/')){
+    const dt=new DataTransfer(); dt.items.add(f);
+    document.getElementById('imgFileInput').files=dt.files;
+    handleImageUpload({target:{files:dt.files}});
+  }
+});
+
+// ══ SETTINGS ══
+function getSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}catch{return{}}}
+function saveAllSettings(){
+  const s=getSettings();
+  s.tagline  = document.getElementById('taglineInput').value.trim();
+  s.footer   = document.getElementById('footerInput').value.trim();
+  s.whatsapp = document.getElementById('whatsappInput').value.trim();
+  s.address  = document.getElementById('addressInput').value.trim();
+  s.mapsUrl  = document.getElementById('mapsInput').value.trim();
+  s.offerText= document.getElementById('offerInput').value.trim();
+  localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));
+  showToast('✅ All settings saved!');
+}
+function initSettings(){
+  const s=getSettings();
+  if(s.tagline)  document.getElementById('taglineInput').value  = s.tagline;
+  if(s.footer)   document.getElementById('footerInput').value   = s.footer;
+  if(s.whatsapp) document.getElementById('whatsappInput').value = s.whatsapp;
+  if(s.address)  document.getElementById('addressInput').value  = s.address;
+  if(s.mapsUrl)  document.getElementById('mapsInput').value     = s.mapsUrl;
+  if(s.offerText)document.getElementById('offerInput').value    = s.offerText;
+}
+
+document.getElementById('adminSearch').addEventListener('input', renderList);
+
+// ══ INIT ══
+checkSession();
+initSettings();
+initSheetUrl();
+renderList();
+updateStats();
+</script>
+</body>
+</html>
