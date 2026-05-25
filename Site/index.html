@@ -585,10 +585,19 @@ function renderProducts(){
   grid.innerHTML=f.map(p=>{
     const{cls,label}=getStockClass(p.stock);
     const badge=p.badge?`<span class="card-badge ${p.badge==='Popular'?'popular':p.badge==='New'?'new':''}">${p.badge}</span>`:'';
-    const img=p.image?`<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">`:(p.emoji||getEmoji(p.category));
+
+    // Smart image: URL இருந்தா img tag, இல்லன்னா colorful canvas placeholder
+    const imgUrl = (p.image||'').trim();
+    const emojiIcon = p.emoji || getEmoji(p.category);
+    const imgHtml = imgUrl
+      ? `<img src="${imgUrl}" alt="${p.name}"
+           style="width:100%;height:100%;object-fit:cover;border-radius:0;"
+           onerror="this.parentElement.innerHTML='<span style=\\"font-size:4rem\\">${emojiIcon}</span>'">`
+      : `<span style="font-size:4.5rem;filter:drop-shadow(0 0 10px currentColor)">${emojiIcon}</span>`;
+
     const isOut=p.stock==='Out of Stock';
-    const pData=encodeURIComponent(JSON.stringify({id:p.id||p.name,name:p.name,price:Number(p.price),category:p.category,unit:p.unit,emoji:p.emoji,image:p.image}));
-    return`<div class="product-card">${badge}<div class="card-img">${img}</div><div class="card-body"><div class="card-category">${p.category||'General'}</div><div class="card-name">${p.name||'Product'}</div>${p.nameTa?`<div class="card-name-ta">${p.nameTa}</div>`:''} ${p.description?`<div class="card-desc">${p.description}</div>`:''}<div class="card-footer"><div class="card-price">₹${Number(p.price||0).toLocaleString('en-IN')} <small>/${p.unit||'box'}</small></div><span class="card-stock ${cls}">${label}</span></div><button class="add-cart-btn" onclick="addToCart('${pData}')" ${isOut?'disabled':''}>${isOut?'❌ Unavailable':'🛒 Cart-ல் சேர்'}</button></div></div>`;
+    const pData=encodeURIComponent(JSON.stringify({id:p.id||p.name,name:p.name,price:Number(p.price),category:p.category,unit:p.unit,emoji:p.emoji,image:imgUrl}));
+    return`<div class="product-card">${badge}<div class="card-img">${imgHtml}</div><div class="card-body"><div class="card-category">${p.category||'General'}</div><div class="card-name">${p.name||'Product'}</div>${p.nameTa?`<div class="card-name-ta">${p.nameTa}</div>`:''} ${p.description?`<div class="card-desc">${p.description}</div>`:''}<div class="card-footer"><div class="card-price">₹${Number(p.price||0).toLocaleString('en-IN')} <small>/${p.unit||'box'}</small></div><span class="card-stock ${cls}">${label}</span></div><button class="add-cart-btn" onclick="addToCart('${pData}')" ${isOut?'disabled':''}>${isOut?'❌ Unavailable':'🛒 Cart-ல் சேர்'}</button></div></div>`;
   }).join('');
 }
 

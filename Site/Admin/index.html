@@ -210,8 +210,9 @@
     <div class="step-item">
       <span class="step-num">2</span>
       <div class="step-text"><strong>Row 1-ல் இந்த headers சரியா போடுங்கள்:</strong>
-        <div class="code-box">id	name	nameTa	category	price	unit	stock	badge	description	emoji</div>
-        (Tab key-ல் அடுத்த column-க்கு போகலாம்)
+        <div class="code-box">id	name	nameTa	category	price	unit	stock	badge	description	emoji	image</div>
+        image column-ல் → direct image URL போடலாம் (Google Images-ல் இருந்து copy பண்ணி)<br>
+        Empty-ஆ விட்டா → emoji காட்டும்
       </div>
     </div>
 
@@ -392,17 +393,59 @@
       <label>Description (Optional)</label>
       <textarea id="prodDesc" placeholder="சிறப்பம்சங்கள், விளக்கம்..."></textarea>
 
+      <label>Description (Optional)</label>
+      <textarea id="prodDesc" placeholder="சிறப்பம்சங்கள், விளக்கம்..."></textarea>
+
       <label>Emoji Icon</label>
       <div class="emoji-grid" id="emojiGrid">🧨 🎆 🎇 ✨ 🚀 💥 🌸 🌀 🎊 🎉 🪔 ⭐ 🌟 💫 🔥 🎯 🌈 🎁 🏮 🛸</div>
       <input type="hidden" id="prodEmoji" value="🧨">
 
-      <label>Product Image (Optional — max 2MB)</label>
-      <div class="img-upload-area" id="imgUploadArea">
-        <input type="file" accept="image/*" id="imgFileInput" onchange="handleImageUpload(event)">
-        <div id="imgPreviewContainer">
-          <div class="img-upload-hint"><span>🖼️</span>Click or drag photo here<br>JPG, PNG, WEBP</div>
+      <label>🖼️ Product Image</label>
+
+      <!-- Tab toggle -->
+      <div style="display:flex;gap:.4rem;margin-bottom:.6rem">
+        <button type="button" id="tabUrl" onclick="switchTab('url')"
+          style="flex:1;padding:.45rem;border-radius:6px;border:1px solid var(--gold);background:#F5A62320;color:var(--gold);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">
+          🔗 URL Paste
+        </button>
+        <button type="button" id="tabUpload" onclick="switchTab('upload')"
+          style="flex:1;padding:.45rem;border-radius:6px;border:1px solid var(--card-border);background:transparent;color:var(--text-muted);font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">
+          📁 File Upload
+        </button>
+      </div>
+
+      <!-- URL tab -->
+      <div id="tabUrlPanel">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <input type="text" id="prodImageUrl" placeholder="https://... image URL paste பண்ணுங்கள்"
+            style="flex:1;min-width:160px" oninput="previewImageUrl(this.value)">
+          <button type="button" onclick="searchGoogleImage()"
+            style="padding:.6rem .85rem;background:#4285F4;color:#fff;border:none;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">
+            🔍 Google Images
+          </button>
+        </div>
+        <div id="urlPreviewWrap" style="display:none;margin-top:.6rem;position:relative;border-radius:8px;overflow:hidden;max-height:140px;border:1px solid var(--card-border)">
+          <img id="urlPreviewImg" src="" alt="preview" style="width:100%;max-height:140px;object-fit:cover;display:block"
+            onerror="document.getElementById('urlPreviewWrap').style.display='none';showToast('Image load ஆகல — வேற URL try பண்ணுங்கள்',true)">
+          <button type="button" onclick="clearImageUrl()"
+            style="position:absolute;top:5px;right:5px;background:#E74C3C;color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:.75rem;cursor:pointer;font-weight:700">✕</button>
+        </div>
+        <div style="margin-top:.5rem;font-size:.72rem;color:var(--text-muted);line-height:1.6;padding:.5rem .75rem;background:#1A1A25;border-radius:6px">
+          💡 <strong style="color:var(--text-primary)">Steps:</strong>
+          "Google Images" click → image right-click → <strong style="color:var(--text-primary)">"Copy image address"</strong> → இங்கே paste பண்ணுங்கள்
         </div>
       </div>
+
+      <!-- File Upload tab -->
+      <div id="tabUploadPanel" style="display:none">
+        <div class="img-upload-area" id="imgUploadArea">
+          <input type="file" accept="image/*" id="imgFileInput" onchange="handleImageUpload(event)">
+          <div id="imgPreviewContainer">
+            <div class="img-upload-hint"><span>🖼️</span>Click or drag photo here<br>JPG, PNG, WEBP (max 2MB)</div>
+          </div>
+        </div>
+      </div>
+
       <input type="hidden" id="prodImage" value="">
 
       <button class="btn-primary" id="submitBtn" onclick="saveProduct()">✅ Add to Local List</button>
@@ -612,7 +655,7 @@ function saveProduct(){
 }
 
 function resetForm(){
-  ['prodName','prodNameTa','prodCategory','prodPrice','prodDesc','editId','prodImage']
+  ['prodName','prodNameTa','prodCategory','prodPrice','prodDesc','editId','prodImage','prodImageUrl']
     .forEach(id=>document.getElementById(id).value='');
   document.getElementById('prodUnit').value  = 'box';
   document.getElementById('prodStock').value = 'In Stock';
@@ -623,9 +666,11 @@ function resetForm(){
   document.getElementById('imgPreviewContainer').innerHTML =
     `<div class="img-upload-hint"><span>🖼️</span>Click or drag photo here<br>JPG, PNG, WEBP</div>`;
   document.getElementById('imgFileInput').value = '';
+  document.getElementById('urlPreviewWrap').style.display = 'none';
   document.getElementById('formTitle').textContent    = '➕ Add New Product';
   document.getElementById('submitBtn').textContent    = '✅ Add to Local List';
   document.getElementById('cancelEditBtn').style.display = 'none';
+  switchTab('url');
 }
 
 function editProduct(id){
@@ -641,9 +686,24 @@ function editProduct(id){
   document.getElementById('prodDesc').value    = p.description||'';
   document.getElementById('prodEmoji').value   = p.emoji||'🧨';
   document.getElementById('prodImage').value   = p.image||'';
-  document.getElementById('imgPreviewContainer').innerHTML = p.image
-    ? `<div class="img-preview-wrap"><img src="${p.image}" class="img-preview"><button type="button" class="img-remove-btn" onclick="removeImage()">✕</button></div>`
-    : `<div class="img-upload-hint"><span>🖼️</span>Click or drag photo here</div>`;
+
+  // If image is URL (not base64), show in URL tab; else show in upload tab
+  const isUrl = p.image && !p.image.startsWith('data:');
+  if(isUrl){
+    switchTab('url');
+    document.getElementById('prodImageUrl').value = p.image;
+    document.getElementById('urlPreviewImg').src  = p.image;
+    document.getElementById('urlPreviewWrap').style.display = 'block';
+    document.getElementById('imgPreviewContainer').innerHTML =
+      `<div class="img-upload-hint"><span>🖼️</span>Click or drag photo here<br>JPG, PNG, WEBP</div>`;
+  } else {
+    switchTab('upload');
+    document.getElementById('prodImageUrl').value = '';
+    document.getElementById('urlPreviewWrap').style.display = 'none';
+    document.getElementById('imgPreviewContainer').innerHTML = p.image
+      ? `<div class="img-preview-wrap"><img src="${p.image}" class="img-preview"><button type="button" class="img-remove-btn" onclick="removeImage()">✕</button></div>`
+      : `<div class="img-upload-hint"><span>🖼️</span>Click or drag photo here</div>`;
+  }
   document.querySelectorAll('.emoji-btn').forEach(b=>
     b.classList.toggle('selected', b.textContent.trim()===(p.emoji||'🧨'))
   );
@@ -688,7 +748,45 @@ function importData(event){
   reader.readAsText(file); event.target.value='';
 }
 
-// image upload
+// ── IMAGE URL + TAB ──
+function switchTab(tab){
+  const isUrl = tab === 'url';
+  document.getElementById('tabUrlPanel').style.display    = isUrl ? 'block' : 'none';
+  document.getElementById('tabUploadPanel').style.display = isUrl ? 'none'  : 'block';
+  document.getElementById('tabUrl').style.cssText    = `flex:1;padding:.45rem;border-radius:6px;border:1px solid ${isUrl?'var(--gold)':'var(--card-border)'};background:${isUrl?'#F5A62320':'transparent'};color:${isUrl?'var(--gold)':'var(--text-muted)'};font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif`;
+  document.getElementById('tabUpload').style.cssText = `flex:1;padding:.45rem;border-radius:6px;border:1px solid ${!isUrl?'var(--gold)':'var(--card-border)'};background:${!isUrl?'#F5A62320':'transparent'};color:${!isUrl?'var(--gold)':'var(--text-muted)'};font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif`;
+  // clear the other tab's value
+  if(isUrl){ document.getElementById('prodImage').value = document.getElementById('prodImageUrl').value.trim(); }
+  else { document.getElementById('prodImage').value = ''; }
+}
+
+function previewImageUrl(url){
+  const wrap = document.getElementById('urlPreviewWrap');
+  const img  = document.getElementById('urlPreviewImg');
+  document.getElementById('prodImage').value = url.trim();
+  if(url.trim()){
+    img.src = url.trim();
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function clearImageUrl(){
+  document.getElementById('prodImageUrl').value = '';
+  document.getElementById('prodImage').value    = '';
+  document.getElementById('urlPreviewWrap').style.display = 'none';
+}
+
+function searchGoogleImage(){
+  const name = document.getElementById('prodName').value.trim() ||
+               document.getElementById('prodCategory').value.trim() ||
+               'cracker fireworks';
+  const query = encodeURIComponent(name + ' cracker firecracker');
+  window.open(`https://www.google.com/search?tbm=isch&q=${query}`, '_blank');
+}
+
+// image file upload
 function handleImageUpload(event){
   const file=event.target.files[0]; if(!file)return;
   if(file.size>2*1024*1024){showToast('Image 2MB-க்கு மேல்! Compress பண்ணுங்கள்.',true);return}
