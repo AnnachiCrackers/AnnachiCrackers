@@ -498,7 +498,7 @@
 // ══════════════════════════════════════════
 // 🔧 CONFIG — Admin-ல் இருந்து copy பண்ணுங்கள்
 // ══════════════════════════════════════════
-const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxbzXzThbCNT5d77p7jS2-MlIzHq7MLzPiZ8S5KYNgDtZWHz0_mTOr_U7h6X9-meQ/exec'; // உங்கள் Apps Script URL இங்கே போடுங்கள்
+const SHEET_API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTHK1NfkqzuFt0omfvFZUKuU5oAZAlAoP_1QRO6FPH8upwU7FTn18TRqoj2aY_jQZ27r09QQrpqq33yXv5M6ARNciPNv66NnhyOrJ4quBBZJiOGvLJYMKHdknw-Ki2VjcDIQ0wNi8QKMPNLI2tzkcayAaQvC_liVp9Y4h1XNvUveCVCWMUELOzlCC9IdbDyTKwmu0m_U_xXCMq8b1M1jfI7IC0dFJM9x_EKsLY7wIXrZdKm5FhSuEyc1iHzHr6UVpai4jdGJjEmTWSzoog2JYzbez9iYg&lib=MNR8HxZlM83FqL9iPrM7N7JLCVdRC5UVF'; // உங்கள் Apps Script URL இங்கே போடுங்கள்
 const SETTINGS_KEY = 'crackers_settings';
 // ══════════════════════════════════════════
 
@@ -542,11 +542,10 @@ async function fetchProducts(){
     if(!res.ok) throw new Error('Fetch failed');
     const data = await res.json();
     allProducts = data.products || data || [];
-    // settings from sheet too if provided
-    if(data.settings){
-      const existing = loadSettings();
-      const merged = {...existing, ...data.settings};
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+    // Settings from Sheet — Sheet-ல் save ஆன settings எல்லா device-லயும் apply ஆகும்
+    if(data.settings && Object.keys(data.settings).length > 0){
+      // Sheet settings override localStorage (single source of truth)
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(data.settings));
       applySettings();
     }
     loading.classList.remove('show');
