@@ -527,8 +527,26 @@ const AUTH_KEY     = 'crackers_auth';
 const SESSION_KEY  = 'crackers_session';
 const SHEET_URL_KEY= 'crackers_sheet_url';
 
+// ══ SAFE STORAGE (localStorage blocked ஆனாலும் crash ஆகாது) ══
+const safeStorage = {
+  _mem:{},
+  get(k){ try{ return localStorage.getItem(k); }catch{ return this._mem[k]||null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch{ this._mem[k]=v; } },
+  remove(k){ try{ localStorage.removeItem(k); }catch{ delete this._mem[k]; } }
+};
+
+// session: use safeStorage wrapper for sessionStorage too
+const safeSession = {
+  get(k){ try{ return sessionStorage.getItem(k); }catch{ return safeStorage._mem['_sess_'+k]||null; } },
+  set(k,v){ try{ sessionStorage.setItem(k,v); }catch{ safeStorage._mem['_sess_'+k]=v; } },
+  remove(k){ try{ sessionStorage.removeItem(k); }catch{ delete safeStorage._mem['_sess_'+k]; } }
+};
+
 // ══ AUTH ══
-function getAuth(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'{}')}catch{return{}}}
+function getAuth(){
+  const v = safeStorage.get(AUTH_KEY);
+  try{ return v ? JSON.parse(v) : {}; }catch{ return {}; }
+}
 function doLogin(){
   const creds = Object.keys(getAuth()).length ? getAuth() : {username:'admin',password:'admin123'};
   const user  = document.getElementById('loginUser').value.trim();
@@ -536,7 +554,7 @@ function doLogin(){
   const err   = document.getElementById('loginErr');
   if(!user||!pass){err.textContent='Username & Password enter பண்ணுங்கள்!';return}
   if(user===creds.username && pass===creds.password){
-    sessionStorage.setItem(SESSION_KEY,'1');
+    safeSession.set(SESSION_KEY,'1');
     document.getElementById('loginOverlay').style.display='none';
     err.textContent='';
   } else {
@@ -545,14 +563,14 @@ function doLogin(){
   }
 }
 function doLogout(){
-  sessionStorage.removeItem(SESSION_KEY);
+  safeSession.remove(SESSION_KEY);
   ['loginUser','loginPass'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('loginErr').textContent='';
   document.getElementById('loginOverlay').style.display='flex';
 }
 function checkSession(){
   document.getElementById('loginOverlay').style.display =
-    sessionStorage.getItem(SESSION_KEY) ? 'none' : 'flex';
+    safeSession.get(SESSION_KEY) ? 'none' : 'flex';
 }
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
@@ -572,7 +590,7 @@ function saveCredentials(){
   if(!user){err.textContent='Username enter பண்ணுங்கள்!';return}
   if(pass.length<4){err.textContent='Password min 4 characters!';return}
   if(pass!==conf){err.textContent='Passwords match ஆகல!';return}
-  localStorage.setItem(AUTH_KEY,JSON.stringify({username:user,password:pass}));
+  safeStorage.set(AUTH_KEY,JSON.stringify({username:user,password:pass}));
   showToast('✅ Credentials updated!');closeModal();
 }
 
@@ -585,20 +603,20 @@ function saveSheetUrl(){
     note.textContent='⚠️ Valid Apps Script URL போடுங்கள் (https://script.google.com/macros/s/.../exec)';
     return;
   }
-  localStorage.setItem(SHEET_URL_KEY, url);
+  safeStorage.set(SHEET_URL_KEY, url);
   document.getElementById('urlCopyBox').textContent = `const SHEET_API_URL = '${url}';`;
   note.className='url-saved-note show';
-  note.textContent='✅ Saved! இப்போ index.html-ல் SHEET_API_URL line-ஐ மேலே காட்டிய மாதிரி update பண்ணி GitHub-ல் push பண்ணுங்கள்.';
+  note.textContent='✅ Saved! index.html-ல் SHEET_API_URL update பண்ணி GitHub-ல் push பண்ணுங்கள்.';
   showToast('✅ Sheet URL saved!');
 }
 function initSheetUrl(){
-  const saved = localStorage.getItem(SHEET_URL_KEY);
+  const saved = safeStorage.get(SHEET_URL_KEY);
   if(saved){
     document.getElementById('sheetUrlInput').value = saved;
     document.getElementById('urlCopyBox').textContent = `const SHEET_API_URL = '${saved}';`;
     const note = document.getElementById('urlNote');
     note.className='url-saved-note show';
-    note.textContent='✅ URL already configured. index.html-ல் update ஆச்சா check பண்ணுங்கள்.';
+    note.textContent='✅ URL configured. index.html-ல் update ஆச்சா check பண்ணுங்கள்.';
   }
 }
 
@@ -611,8 +629,8 @@ function showToast(msg, isError=false){
 }
 
 // ══ PRODUCTS ══
-function getProducts(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch{return[]}}
-function saveProds(p){localStorage.setItem(STORAGE_KEY,JSON.stringify(p))}
+function getProducts(){ const v=safeStorage.get(STORAGE_KEY); try{return v?JSON.parse(v):[]}catch{return[]} }
+function saveProds(p){ safeStorage.set(STORAGE_KEY,JSON.stringify(p)); }
 
 // emoji selector init
 const egEl   = document.getElementById('emojiGrid');
@@ -860,10 +878,10 @@ ua.addEventListener('drop',e=>{
 });
 
 // ══ SETTINGS ══
-function getSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}catch{return{}}}
+function getSettings(){ const v=safeStorage.get(SETTINGS_KEY); try{return v?JSON.parse(v):{}}catch{return{}} }
 
 async function saveAllSettings(){
-  const sheetUrl = localStorage.getItem(SHEET_URL_KEY)||'';
+  const sheetUrl = safeStorage.get(SHEET_URL_KEY)||'';
   const s = {
     tagline  : document.getElementById('taglineInput').value.trim(),
     footer   : document.getElementById('footerInput').value.trim(),
@@ -873,8 +891,8 @@ async function saveAllSettings(){
     offerText: document.getElementById('offerInput').value.trim(),
   };
 
-  // Always save to localStorage (offline fallback)
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  // Always save locally (offline fallback)
+  safeStorage.set(SETTINGS_KEY, JSON.stringify(s));
 
   if(!sheetUrl){
     showToast('✅ Settings saved locally! Sheet URL இல்லாம — local மட்டும்.');
@@ -909,15 +927,15 @@ function initSettings(){
   if(s.mapsUrl)  document.getElementById('mapsInput').value     = s.mapsUrl;
   if(s.offerText)document.getElementById('offerInput').value    = s.offerText;
 
-  // Also fetch latest from Sheet so admin sees current saved values
-  const sheetUrl = localStorage.getItem(SHEET_URL_KEY)||'';
+  // Fetch latest from Sheet
+  const sheetUrl = safeStorage.get(SHEET_URL_KEY)||'';
   if(sheetUrl){
     fetch(sheetUrl)
       .then(r=>r.json())
       .then(data=>{
         if(data.settings && Object.keys(data.settings).length > 0){
           const s2 = data.settings;
-          localStorage.setItem(SETTINGS_KEY, JSON.stringify(s2));
+          safeStorage.set(SETTINGS_KEY, JSON.stringify(s2));
           if(s2.tagline)  document.getElementById('taglineInput').value  = s2.tagline;
           if(s2.footer)   document.getElementById('footerInput').value   = s2.footer;
           if(s2.whatsapp) document.getElementById('whatsappInput').value = s2.whatsapp;
@@ -925,7 +943,7 @@ function initSettings(){
           if(s2.mapsUrl)  document.getElementById('mapsInput').value     = s2.mapsUrl;
           if(s2.offerText)document.getElementById('offerInput').value    = s2.offerText;
         }
-      }).catch(()=>{}); // silent fail — local values still shown
+      }).catch(()=>{});
   }
 }
 

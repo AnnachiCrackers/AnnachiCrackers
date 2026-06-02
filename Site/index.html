@@ -505,24 +505,38 @@ const SETTINGS_KEY = 'crackers_settings';
 let allProducts = [];
 let cart = [];
 
-// ── SETTINGS ──
-function loadSettings(){try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}catch{return{}}}
+// ── SAFE STORAGE WRAPPER (localStorage blocked ஆனாலும் crash ஆகாது) ──
+const safeStorage = {
+  _mem: {},
+  get(k){ try{ return localStorage.getItem(k); }catch{ return this._mem[k]||null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch{ this._mem[k]=v; } },
+  remove(k){ try{ localStorage.removeItem(k); }catch{ delete this._mem[k]; } }
+};
+
+// ── SETTINGS (memory-based, loaded from Sheet) ──
+let _settings = {};
+function loadSettings(){ return _settings; }
+
 function applySettings(){
-  const s=loadSettings();
-  document.getElementById('siteTagline').textContent=s.tagline?.trim()||'அண்ணாச்சி கிராக்கர்ஸ்';
-  document.getElementById('siteFooter').textContent=s.footer?.trim()||'© 2024 Annachi Crackers • அண்ணாச்சி கிராக்கர்ஸ் 🪔';
-  const addrEl=document.getElementById('siteAddress');
-  addrEl.innerHTML=s.address?.trim()?'📍 '+s.address.trim()+(s.mapsUrl?.trim()?` &nbsp;•&nbsp; <a href="${s.mapsUrl.trim()}" target="_blank">Google Maps 🗺️</a>`:''):'';
-  const mq=document.getElementById('offerMarquee');
-  const banner=document.getElementById('offerBanner');
-  if(s.offerText?.trim()){mq.innerHTML=s.offerText.split('|').map(t=>`<span>🎆 ${t.trim()}</span>`).join('');banner.classList.add('show');}
-  else banner.classList.remove('show');
-  const waNum=(s.whatsapp||'').replace(/\D/g,'');
-  const waFab=document.getElementById('waFab');
-  if(waNum){waFab.href=`https://wa.me/${waNum}`;waFab.style.display='flex';}
-  else waFab.style.display='none';
+  const s = _settings;
+  document.getElementById('siteTagline').textContent = s.tagline?.trim() || 'அண்ணாச்சி கிராக்கர்ஸ்';
+  document.getElementById('siteFooter').textContent  = s.footer?.trim()  || '© 2024 Annachi Crackers • அண்ணாச்சி கிராக்கர்ஸ் 🪔';
+  const addrEl = document.getElementById('siteAddress');
+  addrEl.innerHTML = s.address?.trim()
+    ? '📍 '+s.address.trim()+(s.mapsUrl?.trim() ? ` &nbsp;•&nbsp; <a href="${s.mapsUrl.trim()}" target="_blank">Google Maps 🗺️</a>` : '')
+    : '';
+  const mq = document.getElementById('offerMarquee');
+  const banner = document.getElementById('offerBanner');
+  if(s.offerText?.trim()){
+    mq.innerHTML = s.offerText.split('|').map(t=>`<span>🎆 ${t.trim()}</span>`).join('');
+    banner.classList.add('show');
+  } else { banner.classList.remove('show'); }
+  const waNum = (s.whatsapp||'').replace(/\D/g,'');
+  const waFab = document.getElementById('waFab');
+  if(waNum){ waFab.href = `https://wa.me/${waNum}`; waFab.style.display='flex'; }
+  else { waFab.style.display='none'; }
 }
-applySettings();
+applySettings(); // default values first
 
 // ── FETCH FROM GOOGLE SHEETS ──
 async function fetchProducts(){
@@ -542,11 +556,15 @@ async function fetchProducts(){
     if(!res.ok) throw new Error('Fetch failed');
     const data = await res.json();
     allProducts = data.products || data || [];
-    // Settings from Sheet — Sheet-ல் save ஆன settings எல்லா device-லயும் apply ஆகும்
+    // Settings from Sheet — எல்லா devices-லயும் same (localStorage தேவையில்லை)
     if(data.settings && Object.keys(data.settings).length > 0){
-      // Sheet settings override localStorage (single source of truth)
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(data.settings));
+      _settings = data.settings;
+      safeStorage.set(SETTINGS_KEY, JSON.stringify(_settings)); // optional cache
       applySettings();
+    } else {
+      // Fallback: cached settings
+      const cached = safeStorage.get(SETTINGS_KEY);
+      if(cached){ try{ _settings = JSON.parse(cached); applySettings(); }catch{} }
     }
     loading.classList.remove('show');
     searchSec.style.display='flex';
@@ -638,9 +656,8 @@ function toggleCart(){
 
 function orderOnWhatsApp(){
   if(!cart.length)return;
-  const s=loadSettings();
-  const waNum=(s.whatsapp||'').replace(/\D/g,'');
-  if(!waNum){alert('Admin panel-ல் WhatsApp number set பண்ணுங்கள்!');return;}
+  const waNum=(_settings.whatsapp||'').replace(/\D/g,'');
+  if(!waNum){alert('WhatsApp number set ஆகல — Admin panel-ல் settings save பண்ணுங்கள்!');return;}
   const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const lines=cart.map(i=>`• ${i.name} × ${i.qty} = ₹${(i.price*i.qty).toLocaleString('en-IN')}`).join('\n');
   const msg=`🎆 *Annachi Crackers — Order*\n\n${lines}\n\n*மொத்தம்: ₹${total.toLocaleString('en-IN')}*\n\nPlease confirm my order! 🙏`;
